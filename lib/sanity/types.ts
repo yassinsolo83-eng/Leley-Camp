@@ -5,8 +5,8 @@ export type Localized = { en?: string; ar?: string } | undefined | null;
 export type SanityImage = {
   _type?: "image";
   asset?: { _ref: string; _type: "reference" };
-  hotspot?: unknown;
-  crop?: unknown;
+  hotspot?: { x?: number; y?: number; width?: number; height?: number };
+  crop?: { left?: number; right?: number; top?: number; bottom?: number };
 };
 
 export type SectionHeading = { tag?: Localized; title?: Localized; subtitle?: Localized };
@@ -39,7 +39,7 @@ export type GalleryEntry = { _key: string; image?: SanityImage; alt?: Localized;
 
 export type HomePage = {
   hero?: { badge?: Localized; title?: Localized; subtitle?: Localized; image?: SanityImage };
-  vrSection?: { title?: Localized; subtitle?: Localized };
+  vrSection?: { title?: Localized; subtitle?: Localized; image?: SanityImage };
   about?: {
     heading?: SectionHeading;
     paragraphs?: Localized[];

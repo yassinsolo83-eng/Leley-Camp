@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { isLocale, tr } from "@/lib/i18n";
 import { FALLBACK, getContext, getPageData, pageMetadata } from "@/lib/data";
-import { imageUrl } from "@/lib/sanity/image";
+import { imagePosition, imageUrl } from "@/lib/sanity/image";
 import PageHero from "@/components/PageHero";
 import SectionHeading from "@/components/SectionHeading";
 import GalleryGrid from "@/components/GalleryGrid";
@@ -23,7 +23,7 @@ export default async function GalleryPage({ params }: PageProps<"/[lang]/gallery
   const { home, pages, dict, settings: s } = ctx;
 
   const items = (home?.gallery ?? [])
-    .map((g) => ({ key: g._key, src: imageUrl(g.image), alt: tr(g.alt, lang) || ctx.campName, wide: Boolean(g.wide) }))
+    .map((g) => ({ key: g._key, src: imageUrl(g.image), alt: tr(g.alt, lang) || ctx.campName, wide: Boolean(g.wide), pos: imagePosition(g.image) }))
     .filter((g) => g.src);
   const poster = imageUrl(home?.videoPoster);
 
@@ -53,7 +53,8 @@ export default async function GalleryPage({ params }: PageProps<"/[lang]/gallery
             url={s.vrTourUrl}
             title={tr(home?.vrSection?.title, lang) || dict.vrCard}
             subtitle={tr(home?.vrSection?.subtitle, lang)}
-            posterUrl={imageUrl(home?.about?.image, FALLBACK.about)}
+            posterUrl={imageUrl(home?.vrSection?.image, "") || imageUrl(home?.about?.image, FALLBACK.about)}
+            posterPosition={imagePosition(home?.vrSection?.image || home?.about?.image)}
             dict={dict}
           />
         </section>

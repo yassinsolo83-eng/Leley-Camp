@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LOCALES, isLocale, localePath, tr } from "@/lib/i18n";
 import { getContext, getPageData, pageMetadata } from "@/lib/data";
-import { imageUrl } from "@/lib/sanity/image";
+import { imagePosition, imageUrl } from "@/lib/sanity/image";
+import Backdrop from "@/components/Backdrop";
 import CabinCard from "@/components/CabinCard";
 import GalleryGrid from "@/components/GalleryGrid";
 import RugBand from "@/components/RugBand";
@@ -37,14 +37,14 @@ export default async function CabinPage({ params }: PageProps<"/[lang]/cabins/[s
   const tag = tr(cabin.tag, lang);
   const details = (cabin.details ?? []).map((d) => tr(d, lang)).filter(Boolean);
   const amenities = (cabin.amenities ?? []).map((a) => tr(a, lang)).filter(Boolean);
-  const photos = (cabin.photos ?? []).map((p, i) => ({ key: p._key || String(i), src: imageUrl(p), alt: name, wide: false })).filter((p) => p.src);
+  const photos = (cabin.photos ?? []).map((p, i) => ({ key: p._key || String(i), src: imageUrl(p), alt: name, wide: false, pos: imagePosition(p) })).filter((p) => p.src);
   const others = cabins.filter((c) => c._id !== cabin._id);
   const bookHref = `${localePath(lang, "/booking")}?cabin=${cabin.slug}#reserve`;
 
   return (
     <>
       <section className="cabin-hero">
-        <Image src={imageUrl(cabin.image, "/images/cabin-1.jpg")} alt={name} fill priority sizes="100vw" className="hero-img" />
+        <Backdrop src={imageUrl(cabin.image, "/images/cabin-1.jpg")} position={imagePosition(cabin.image)} priority />
         <div className="container cabin-hero-inner">
           <Link className="crumb" href={localePath(lang, "/cabins")}>{dict.navCabins}</Link>
           <h1 className="display hero-title">{name}</h1>

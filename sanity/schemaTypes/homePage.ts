@@ -23,6 +23,8 @@ export const homePage = defineType({
     defineField({ name: "vrSection", title: "360° tour block", type: "object", group: "hero", fields: [
       defineField({ name: "title", title: "Title", type: "localeString" }),
       defineField({ name: "subtitle", title: "Subtitle", type: "localeString" }),
+      defineField({ name: "image", title: "Cover photo", type: "image", options: { hotspot: true },
+        description: "Use Crop to cut out anything you don't want, and the circle (hotspot) to choose what stays in view." }),
     ]}),
 
     defineField({ name: "about", title: "Story", type: "object", group: "about",
@@ -65,7 +67,7 @@ export const homePage = defineType({
       })],
     }),
     defineField({ name: "video", title: "Video (MP4)", type: "file", group: "media", options: { accept: "video/mp4" } }),
-    defineField({ name: "videoPoster", title: "Video cover photo", type: "image", group: "media" }),
+    defineField({ name: "videoPoster", title: "Video cover photo", type: "image", group: "media", options: { hotspot: true } }),
   ],
   preview: { prepare: () => ({ title: "Home page" }) },
 });

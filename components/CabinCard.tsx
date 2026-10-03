@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { localePath, tr } from "@/lib/i18n";
-import { imageUrl } from "@/lib/sanity/image";
+import { imagePosition, imageUrl } from "@/lib/sanity/image";
 import type { Cabin, Locale } from "@/lib/sanity/types";
 import { ArrowIcon } from "./icons";
 
@@ -12,7 +12,7 @@ export default function CabinCard({ cabin, lang, cta }: { cabin: Cabin; lang: Lo
   return (
     <Link className="cabin-card" href={localePath(lang, `/cabins/${cabin.slug}`)}>
       <div className="cabin-card-img">
-        {src && <Image src={src} alt={name} fill sizes="(max-width: 760px) 100vw, 33vw" />}
+        {src && <Image src={src} alt={name} fill sizes="(max-width: 760px) 100vw, 33vw" style={{ objectPosition: imagePosition(cabin.image) }} />}
       </div>
       <div className="cabin-card-body">
         {tag && <p className="cabin-tag">{tag}</p>}

@@ -2,7 +2,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { isLocale, tr } from "@/lib/i18n";
 import { FALLBACK, getContext, getPageData, pageMetadata } from "@/lib/data";
-import { imageUrl } from "@/lib/sanity/image";
+import { imagePosition, imageUrl } from "@/lib/sanity/image";
 import PageHero from "@/components/PageHero";
 import SectionHeading from "@/components/SectionHeading";
 import ReviewList from "@/components/ReviewList";
@@ -45,7 +45,7 @@ export default async function AboutPage({ params }: PageProps<"/[lang]/about">) 
             )}
           </div>
           <div className="story-img">
-            <Image src={imageUrl(about?.image, FALLBACK.about)} alt="" fill sizes="(max-width: 860px) 100vw, 45vw" />
+            <Image src={imageUrl(about?.image, FALLBACK.about)} alt="" fill sizes="(max-width: 860px) 100vw, 45vw" style={{ objectPosition: imagePosition(about?.image) }} />
           </div>
         </div>
       </section>

@@ -40,7 +40,14 @@ export default function SiteHeader({ lang, campName, logoUrl, nav, switchLang, s
   return (
     <header className="site-header">
       <div className="header-inner">
-        <Link className="brand" href={`/${lang}`}>
+        <Link
+          className="brand"
+          href={`/${lang}`}
+          onClick={() => {
+            // Already on the home page: Next.js keeps the scroll position, so go back to the top.
+            if (pathname === `/${lang}`) window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        >
           <Image src={logoUrl} alt="" width={44} height={44} className="brand-logo" priority />
           <span className="brand-name">{campName}</span>
         </Link>

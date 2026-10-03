@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
+import Backdrop from "./Backdrop";
 import { useState } from "react";
 import type { Dictionary } from "@/lib/i18n";
 
-type Props = { url: string; title: string; subtitle: string; posterUrl?: string; dict: Dictionary };
+type Props = { url: string; title: string; subtitle: string; posterUrl?: string; posterPosition?: string; dict: Dictionary };
 
-export default function VrTour({ url, title, subtitle, posterUrl, dict }: Props) {
+export default function VrTour({ url, title, subtitle, posterUrl, posterPosition, dict }: Props) {
   const [open, setOpen] = useState(false);
 
   function launch() {
@@ -29,7 +29,7 @@ export default function VrTour({ url, title, subtitle, posterUrl, dict }: Props)
         </>
       ) : (
         <button type="button" className="vr-placeholder" onClick={launch}>
-          {posterUrl && <Image src={posterUrl} alt="" fill sizes="100vw" className="vr-poster" />}
+          {posterUrl && <Backdrop src={posterUrl} position={posterPosition} />}
           <span className="vr-text">
             <span className="vr-label">360°</span>
             <span className="vr-title">{title}</span>

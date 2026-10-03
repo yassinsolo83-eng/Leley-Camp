@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, localePath, tr } from "@/lib/i18n";
 import { getContext, getPageData, pageMetadata } from "@/lib/data";
-import { imageUrl } from "@/lib/sanity/image";
+import { imagePosition, imageUrl } from "@/lib/sanity/image";
 import PageHero from "@/components/PageHero";
 import CtaBand from "@/components/CtaBand";
 import { ArrowIcon } from "@/components/icons";
@@ -37,7 +37,7 @@ export default async function CabinsPage({ params }: PageProps<"/[lang]/cabins">
             return (
               <article className="cabin-row" key={c._id}>
                 <Link href={href} className="cabin-row-img" tabIndex={-1} aria-hidden="true">
-                  {src && <Image src={src} alt="" fill sizes="(max-width: 860px) 100vw, 55vw" />}
+                  {src && <Image src={src} alt="" fill sizes="(max-width: 860px) 100vw, 55vw" style={{ objectPosition: imagePosition(c.image) }} />}
                 </Link>
                 <div className="cabin-row-body">
                   {tag && <p className="cabin-tag">{tag}</p>}

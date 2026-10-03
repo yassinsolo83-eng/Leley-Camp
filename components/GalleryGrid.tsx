@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 
-export type GalleryItem = { key: string; src: string; alt: string; wide: boolean };
+export type GalleryItem = { key: string; src: string; alt: string; wide: boolean; pos?: string };
 
 type Props = { items: GalleryItem[]; labels: { close: string; previous: string; next: string } };
 
@@ -41,7 +41,7 @@ export default function GalleryGrid({ items, labels }: Props) {
       <div className="gallery-grid">
         {items.map((item, i) => (
           <button type="button" key={item.key} className={`g-item${item.wide ? " wide" : ""}`} onClick={() => setIndex(i)} aria-label={item.alt}>
-            <Image src={item.src} alt={item.alt} fill sizes={item.wide ? "(max-width: 600px) 100vw, 50vw" : "(max-width: 600px) 100vw, 25vw"} />
+            <Image src={item.src} alt={item.alt} fill sizes={item.wide ? "(max-width: 600px) 100vw, 50vw" : "(max-width: 600px) 100vw, 25vw"} style={{ objectPosition: item.pos }} />
           </button>
         ))}
       </div>

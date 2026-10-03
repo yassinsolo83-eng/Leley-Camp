@@ -79,8 +79,11 @@ export async function POST(request: Request) {
         uploaded.set(path, assetId);
         log.push(`Uploaded ${path}`);
       }
-      const ref: Json = { _type: kind, asset: { _type: "reference", _ref: assetId } };
-      return inArray ? { ...(ref as object), _key: Math.random().toString(36).slice(2, 10) } : ref;
+      const ref: { [key: string]: Json } = { _type: kind, asset: { _type: "reference", _ref: assetId } };
+      // Keep any crop / hotspot set in the starter file.
+      if (value.crop) ref.crop = value.crop;
+      if (value.hotspot) ref.hotspot = value.hotspot;
+      return inArray ? { ...ref, _key: Math.random().toString(36).slice(2, 10) } : ref;
     }
 
     const out: { [key: string]: Json } = {};

@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, localePath, tr } from "@/lib/i18n";
 import { FALLBACK, getContext, pageMetadata, siteUrl } from "@/lib/data";
-import { imageUrl } from "@/lib/sanity/image";
+import { imagePosition, imageUrl } from "@/lib/sanity/image";
+import Backdrop from "@/components/Backdrop";
 import SectionHeading from "@/components/SectionHeading";
 import RugBand from "@/components/RugBand";
 import CabinCard from "@/components/CabinCard";
@@ -29,7 +30,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
   const heroSub = tr(home?.hero?.subtitle, lang);
   const badge = tr(home?.hero?.badge, lang);
   const intro = home?.about?.paragraphs?.[0];
-  const photos = (home?.gallery ?? []).slice(0, 6).map((g) => ({ key: g._key, src: imageUrl(g.image), alt: tr(g.alt, lang) })).filter((g) => g.src);
+  const photos = (home?.gallery ?? []).slice(0, 6).map((g) => ({ key: g._key, src: imageUrl(g.image), alt: tr(g.alt, lang), pos: imagePosition(g.image) })).filter((g) => g.src);
 
   const base = siteUrl(s?.siteUrl);
   const jsonLd = {
@@ -53,7 +54,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
 
       <section className="hero">
-        <Image src={imageUrl(home?.hero?.image, FALLBACK.hero)} alt="" fill priority sizes="100vw" className="hero-img" />
+        <Backdrop src={imageUrl(home?.hero?.image, FALLBACK.hero)} position={imagePosition(home?.hero?.image)} priority />
         <div className="container hero-inner">
           {badge && <p className="hero-badge">{badge}</p>}
           <h1 className="display hero-title">{heroTitle}</h1>
@@ -122,7 +123,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
                 const src = imageUrl(a.image);
                 return (
                   <li key={a._id}>
-                    <div className="exp-strip-img">{src && <Image src={src} alt="" fill sizes="(max-width: 760px) 100vw, 33vw" />}</div>
+                    <div className="exp-strip-img">{src && <Image src={src} alt="" fill sizes="(max-width: 760px) 100vw, 33vw" style={{ objectPosition: imagePosition(a.image) }} />}</div>
                     <h3>{a.icon ? <span aria-hidden="true">{a.icon} </span> : null}{tr(a.name, lang)}</h3>
                     <p>{tr(a.description, lang)}</p>
                   </li>
@@ -148,7 +149,8 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
             url={s.vrTourUrl}
             title={tr(home?.vrSection?.title, lang) || dict.vrCard}
             subtitle={tr(home?.vrSection?.subtitle, lang)}
-            posterUrl={imageUrl(home?.about?.image, FALLBACK.about)}
+            posterUrl={imageUrl(home?.vrSection?.image, "") || imageUrl(home?.about?.image, FALLBACK.about)}
+            posterPosition={imagePosition(home?.vrSection?.image || home?.about?.image)}
             dict={dict}
           />
         </section>
@@ -163,7 +165,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
             <div className="photo-strip">
               {photos.map((p) => (
                 <Link key={p.key} href={localePath(lang, "/gallery")} className="photo-strip-item" aria-label={p.alt || dict.navGallery}>
-                  <Image src={p.src} alt={p.alt} fill sizes="(max-width: 760px) 50vw, 17vw" />
+                  <Image src={p.src} alt={p.alt} fill sizes="(max-width: 760px) 50vw, 17vw" style={{ objectPosition: p.pos }} />
                 </Link>
               ))}
             </div>
