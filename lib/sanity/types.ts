@@ -38,7 +38,7 @@ export type PageHeader = { title?: Localized; intro?: Localized; image?: SanityI
 export type GalleryEntry = { _key: string; image?: SanityImage; alt?: Localized; wide?: boolean };
 
 export type HomePage = {
-  hero?: { badge?: Localized; title?: Localized; subtitle?: Localized; image?: SanityImage };
+  hero?: { badge?: Localized; title?: Localized; subtitle?: Localized; image?: SanityImage; mobileImage?: SanityImage };
   vrSection?: { title?: Localized; subtitle?: Localized; image?: SanityImage };
   about?: {
     heading?: SectionHeading;
