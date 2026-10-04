@@ -51,7 +51,7 @@ export default async function AboutPage({ params }: PageProps<"/[lang]/about">) 
       </section>
 
       {reviews.length > 0 && (
-        <section className="section section-paper">
+        <section className="section section-paper" id="reviews">
           <div className="container">
             <SectionHeading heading={home?.reviewsHeading} lang={lang} />
             <ReviewList reviews={reviews} rating={s?.rating} reviewCount={s?.reviewCount} lang={lang} dict={dict} />

@@ -13,7 +13,7 @@ export default function ReviewList({ reviews, rating, reviewCount, lang, dict }:
   const meta = (r: Review) => [r.source, timeAgo(r.date, lang)].filter(Boolean).join(" · ");
 
   return (
-    <div className="reviews">
+    <div className={`reviews${rest.length ? "" : " single"}`}>
       <figure className="review-feature">
         <div className="stars" aria-label={`${first.rating ?? 5}/5`}>{stars(first.rating ?? 5)}</div>
         <blockquote dir="auto">{first.text}</blockquote>
@@ -34,7 +34,7 @@ export default function ReviewList({ reviews, rating, reviewCount, lang, dict }:
           </div>
         ) : null}
       </figure>
-      <div className="review-stack">
+      {rest.length > 0 && <div className="review-stack">
         {rest.map((r) => (
           <figure className="review-small" key={r._id}>
             <div className="stars" aria-label={`${r.rating ?? 5}/5`}>{stars(r.rating ?? 5)}</div>
@@ -46,7 +46,7 @@ export default function ReviewList({ reviews, rating, reviewCount, lang, dict }:
             </figcaption>
           </figure>
         ))}
-      </div>
+      </div>}
     </div>
   );
 }

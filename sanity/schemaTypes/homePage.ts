@@ -20,7 +20,7 @@ export const homePage = defineType({
       defineField({ name: "subtitle", title: "Subtitle", type: "localeText" }),
       defineField({ name: "image", title: "Background photo", type: "image", options: { hotspot: true } }),
     ]}),
-    defineField({ name: "vrSection", title: "360° tour block", type: "object", group: "hero", fields: [
+    defineField({ name: "vrSection", title: "360° tour banner (Gallery page)", type: "object", group: "hero", fields: [
       defineField({ name: "title", title: "Title", type: "localeString" }),
       defineField({ name: "subtitle", title: "Subtitle", type: "localeString" }),
       defineField({ name: "image", title: "Cover photo", type: "image", options: { hotspot: true },
@@ -44,17 +44,14 @@ export const homePage = defineType({
       ],
     }),
 
-    heading("cabinsHeading", "Cabins", "headings"),
-    heading("activitiesHeading", "Experiences", "headings"),
     heading("reviewsHeading", "Reviews", "headings"),
-    heading("galleryHeading", "Photos", "headings"),
     defineField({ name: "ctaBand", title: "Booking banner at the bottom", type: "object", group: "headings", fields: [
       defineField({ name: "title", title: "Title", type: "localeString" }),
       defineField({ name: "subtitle", title: "Subtitle", type: "localeText" }),
     ]}),
 
     defineField({ name: "gallery", title: "Gallery photos", type: "array", group: "media",
-      description: "Shown on the Gallery page; the first six also show on the home page. Drag to reorder. Wide photos take two columns.",
+      description: "Shown on the Gallery page. Drag to reorder. Wide photos take two columns.",
       of: [defineArrayMember({
         type: "object",
         fields: [

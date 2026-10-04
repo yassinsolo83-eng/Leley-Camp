@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
-import { isLocale, tr } from "@/lib/i18n";
+import { isLocale, localePath, tr } from "@/lib/i18n";
 import { FALLBACK, getContext, getPageData, pageMetadata } from "@/lib/data";
 import { imagePosition, imageUrl } from "@/lib/sanity/image";
 import PageHero from "@/components/PageHero";
 import SectionHeading from "@/components/SectionHeading";
 import GalleryGrid from "@/components/GalleryGrid";
-import VrTour from "@/components/VrTour";
+import TourTeaser from "@/components/TourTeaser";
 
 export const revalidate = 60;
 
@@ -48,16 +48,14 @@ export default async function GalleryPage({ params }: PageProps<"/[lang]/gallery
       )}
 
       {s?.vrTourUrl && (
-        <section className="vr-section">
-          <VrTour
-            url={s.vrTourUrl}
-            title={tr(home?.vrSection?.title, lang) || dict.vrCard}
-            subtitle={tr(home?.vrSection?.subtitle, lang)}
-            posterUrl={imageUrl(home?.vrSection?.image, "") || imageUrl(home?.about?.image, FALLBACK.about)}
-            posterPosition={imagePosition(home?.vrSection?.image || home?.about?.image)}
-            dict={dict}
-          />
-        </section>
+        <TourTeaser
+          href={localePath(lang, "/tour")}
+          title={tr(home?.vrSection?.title, lang) || dict.vrCard}
+          subtitle={tr(home?.vrSection?.subtitle, lang)}
+          cta={dict.tourCta}
+          posterUrl={imageUrl(home?.vrSection?.image, "") || imageUrl(home?.about?.image, FALLBACK.about)}
+          posterPosition={imagePosition(home?.vrSection?.image || home?.about?.image)}
+        />
       )}
     </>
   );

@@ -7,9 +7,7 @@ import { imagePosition, imageUrl } from "@/lib/sanity/image";
 import Backdrop from "@/components/Backdrop";
 import SectionHeading from "@/components/SectionHeading";
 import RugBand from "@/components/RugBand";
-import CabinCard from "@/components/CabinCard";
 import ReviewList from "@/components/ReviewList";
-import VrTour from "@/components/VrTour";
 import CtaBand from "@/components/CtaBand";
 import { ArrowIcon, WhatsAppIcon } from "@/components/icons";
 
@@ -24,13 +22,19 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
   const ctx = await getContext(lang);
-  const { home, settings: s, dict, cabins, activities, reviews } = ctx;
+  const { home, pages, settings: s, dict, reviews } = ctx;
 
   const heroTitle = tr(home?.hero?.title, lang) || ctx.campName;
   const heroSub = tr(home?.hero?.subtitle, lang);
   const badge = tr(home?.hero?.badge, lang);
   const intro = home?.about?.paragraphs?.[0];
-  const photos = (home?.gallery ?? []).slice(0, 6).map((g) => ({ key: g._key, src: imageUrl(g.image), alt: tr(g.alt, lang), pos: imagePosition(g.image) })).filter((g) => g.src);
+
+  // Three big photos that lead to the main pages. Photo and text come from each page's header in the Studio.
+  const doors = [
+    { href: "/cabins", label: dict.navCabins, header: pages?.cabins, fallback: "/images/cabin-1.jpg" },
+    { href: "/experiences", label: dict.navExperiences, header: pages?.experiences, fallback: "/images/reef.jpg" },
+    { href: "/gallery", label: dict.navGallery, header: pages?.gallery, fallback: FALLBACK.hero },
+  ];
 
   const base = siteUrl(s?.siteUrl);
   const jsonLd = {
@@ -61,6 +65,11 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
           {heroSub && <p className="hero-sub">{heroSub}</p>}
           <div className="hero-actions">
             <Link className="btn btn-red" href={localePath(lang, "/booking")}>{dict.heroCta}</Link>
+            {s?.vrTourUrl && (
+              <Link className="btn btn-sand btn-tour" href={localePath(lang, "/tour")}>
+                <span className="tour-badge" dir="ltr" aria-hidden="true">360°</span> {dict.tourCta}
+              </Link>
+            )}
             {ctx.waUrl && (
               <a className="btn btn-ghost-light" href={ctx.waUrl} target="_blank" rel="noopener noreferrer">
                 <WhatsAppIcon size={16} /> {dict.whatsappUs}
@@ -78,97 +87,50 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
             {intro && <p className="lead">{tr(intro, lang)}</p>}
             <Link className="text-link" href={localePath(lang, "/about")}>{dict.ourStory} <ArrowIcon /></Link>
           </div>
-          <div className="intro-side">
-            {!!home?.about?.stats?.length && (
-              <dl className="stats">
-                {home.about.stats.map((st) => (
-                  <div key={st._key}>
-                    <dt>{tr(st.label, lang)}</dt>
-                    <dd dir="ltr">{st.value}</dd>
-                  </div>
-                ))}
-                {s?.rating ? (
-                  <div>
-                    <dt>{dict.ratedByGuests}</dt>
-                    <dd dir="ltr">{s.rating.toFixed(1)}</dd>
-                  </div>
-                ) : null}
-              </dl>
-            )}
-          </div>
+          {!!home?.about?.stats?.length && (
+            <dl className="stats">
+              {home.about.stats.map((st) => (
+                <div key={st._key}>
+                  <dt>{tr(st.label, lang)}</dt>
+                  <dd dir="ltr">{st.value}</dd>
+                </div>
+              ))}
+              {s?.rating ? (
+                <div>
+                  <dt>{dict.ratedByGuests}</dt>
+                  <dd dir="ltr">{s.rating.toFixed(1)}</dd>
+                </div>
+              ) : null}
+            </dl>
+          )}
         </div>
       </section>
 
-      {cabins.length > 0 && (
-        <section className="section section-paper">
-          <div className="container">
-            <SectionHeading heading={home?.cabinsHeading} lang={lang}>
-              <Link className="text-link" href={localePath(lang, "/cabins")}>{dict.allCabins} <ArrowIcon /></Link>
-            </SectionHeading>
-            <div className="cabin-grid">
-              {cabins.slice(0, 3).map((c) => <CabinCard key={c._id} cabin={c} lang={lang} cta={dict.viewCabin} />)}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {activities.length > 0 && (
-        <section className="section section-deep">
-          <div className="container">
-            <SectionHeading heading={home?.activitiesHeading} lang={lang}>
-              <Link className="text-link" href={localePath(lang, "/experiences")}>{dict.allExperiences} <ArrowIcon /></Link>
-            </SectionHeading>
-            <ul className="exp-strip">
-              {activities.map((a) => {
-                const src = imageUrl(a.image);
-                return (
-                  <li key={a._id}>
-                    <div className="exp-strip-img">{src && <Image src={src} alt="" fill sizes="(max-width: 760px) 100vw, 33vw" style={{ objectPosition: imagePosition(a.image) }} />}</div>
-                    <h3>{a.icon ? <span aria-hidden="true">{a.icon} </span> : null}{tr(a.name, lang)}</h3>
-                    <p>{tr(a.description, lang)}</p>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </section>
-      )}
+      <section className="doors" aria-label={dict.footerExplore}>
+        {doors.map((d) => {
+          const src = imageUrl(d.header?.image, d.fallback);
+          const text = tr(d.header?.intro, lang);
+          return (
+            <Link key={d.href} className="door" href={localePath(lang, d.href)}>
+              <Image src={src} alt="" fill sizes="(max-width: 860px) 100vw, 34vw" style={{ objectPosition: imagePosition(d.header?.image) }} />
+              <span className="door-text">
+                <span className="display door-title">{d.label}</span>
+                {text && <span className="door-sub">{text}</span>}
+                <span className="door-go"><ArrowIcon /></span>
+              </span>
+            </Link>
+          );
+        })}
+      </section>
 
       {reviews.length > 0 && (
         <section className="section">
           <div className="container">
             <SectionHeading heading={home?.reviewsHeading} lang={lang} />
-            <ReviewList reviews={reviews} rating={s?.rating} reviewCount={s?.reviewCount} lang={lang} dict={dict} />
-          </div>
-        </section>
-      )}
-
-      {s?.vrTourUrl && (
-        <section className="vr-section">
-          <VrTour
-            url={s.vrTourUrl}
-            title={tr(home?.vrSection?.title, lang) || dict.vrCard}
-            subtitle={tr(home?.vrSection?.subtitle, lang)}
-            posterUrl={imageUrl(home?.vrSection?.image, "") || imageUrl(home?.about?.image, FALLBACK.about)}
-            posterPosition={imagePosition(home?.vrSection?.image || home?.about?.image)}
-            dict={dict}
-          />
-        </section>
-      )}
-
-      {photos.length > 0 && (
-        <section className="section section-paper">
-          <div className="container">
-            <SectionHeading heading={home?.galleryHeading} lang={lang}>
-              <Link className="text-link" href={localePath(lang, "/gallery")}>{dict.seeAllPhotos} <ArrowIcon /></Link>
-            </SectionHeading>
-            <div className="photo-strip">
-              {photos.map((p) => (
-                <Link key={p.key} href={localePath(lang, "/gallery")} className="photo-strip-item" aria-label={p.alt || dict.navGallery}>
-                  <Image src={p.src} alt={p.alt} fill sizes="(max-width: 760px) 50vw, 17vw" style={{ objectPosition: p.pos }} />
-                </Link>
-              ))}
-            </div>
+            <ReviewList reviews={reviews.slice(0, 1)} rating={s?.rating} reviewCount={s?.reviewCount} lang={lang} dict={dict} />
+            {reviews.length > 1 && (
+              <Link className="text-link more-reviews" href={`${localePath(lang, "/about")}#reviews`}>{dict.moreReviews} <ArrowIcon /></Link>
+            )}
           </div>
         </section>
       )}

@@ -89,7 +89,7 @@ a:hover .arrow-icon { transform: translateX(3px); }
 .brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 .brand-logo { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--carpet); }
 .brand-name { font-family: var(--f-display); font-weight: 600; font-size: 1.25rem; color: var(--deep); }
-.main-nav { display: flex; gap: 26px; margin-inline-start: auto; }
+.main-nav { display: flex; gap: 22px; margin-inline-start: auto; }
 .main-nav a { font-size: 0.95rem; font-weight: 500; color: var(--ink); padding-block: 6px; border-bottom: 2px solid transparent; transition: color .2s, border-color .2s; }
 .main-nav a:hover { color: var(--reef); }
 .main-nav a.active { color: var(--deep); border-bottom-color: var(--carpet); }
@@ -98,7 +98,7 @@ a:hover .arrow-icon { transform: translateX(3px); }
 .lang-switch:hover { border-color: var(--deep); }
 .menu-btn { display: none; background: none; border: 0; cursor: pointer; padding: 8px; color: var(--deep); }
 
-@media (max-width: 1040px) {
+@media (max-width: 1140px) {
   .main-nav { display: none; }
   .header-actions { margin-inline-start: auto; }
   .menu-btn { display: inline-flex; }
@@ -125,7 +125,12 @@ a:hover .arrow-icon { transform: translateX(3px); }
 .cabin-hero { height: 82svh; min-height: 480px; }
 
 /* Fixed photo: the section clips a full-screen layer, so the page scrolls over a still image. */
-.backdrop { position: fixed; inset: 0; height: 100lvh; z-index: 0; pointer-events: none; }
+.backdrop {
+  position: fixed; top: 0; left: 0; width: 100%;
+  height: 100vh; height: 100lvh; /* large viewport: no jump when the phone's address bar hides */
+  z-index: 0; pointer-events: none;
+  transform: translateZ(0); will-change: transform; backface-visibility: hidden; /* own GPU layer = no shaking */
+}
 .hero::before, .cabin-hero::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(11, 46, 59, 0.72) 0%, rgba(11, 46, 59, 0.18) 38%, rgba(11, 46, 59, 0) 62%); }
 .hero-inner, .cabin-hero-inner { position: relative; z-index: 2; padding-bottom: 96px; }
 .hero-badge { font-size: 0.98rem; color: var(--sand); opacity: 0.9; margin-bottom: 14px; }
@@ -233,17 +238,47 @@ a:hover .arrow-icon { transform: translateX(3px); }
 /* ── 360 tour ── */
 .vr-section { background: var(--deep); }
 .vr-stage { position: relative; height: 80svh; min-height: 480px; clip-path: inset(0); }
-.vr-placeholder { position: absolute; inset: 0; width: 100%; border: 0; cursor: pointer; background: var(--deep); color: var(--sand); }
-.vr-placeholder::before { content: ""; position: absolute; inset: 0; z-index: 1; background: rgba(11, 46, 59, 0.5); transition: background .3s; }
-.vr-placeholder:hover::before { background: rgba(11, 46, 59, 0.4); }
-.vr-text { position: relative; z-index: 2; text-shadow: 0 2px 18px rgba(11, 46, 59, 0.5); display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px; text-align: center; }
+.vr-link { display: flex; align-items: center; justify-content: center; color: var(--sand); background: var(--deep); }
+.vr-link::before { content: ""; position: absolute; inset: 0; z-index: 1; background: rgba(11, 46, 59, 0.5); transition: background .3s; }
+.vr-link:hover::before { background: rgba(11, 46, 59, 0.4); }
+.vr-text { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px; text-align: center; text-shadow: 0 2px 18px rgba(11, 46, 59, 0.5); }
+.vr-text .btn { text-shadow: none; }
 .vr-label { font-family: var(--f-display); font-size: clamp(3.5rem, 10vw, 7rem); font-weight: 600; line-height: 1; color: var(--sand); }
 .vr-title { font-family: var(--f-display); font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 600; }
 .vr-sub { opacity: 0.85; margin-bottom: 12px; }
-.vr-placeholder { display: flex; align-items: center; justify-content: center; }
-.vr-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.vr-badge { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 2; background: rgba(11, 46, 59, 0.8); color: var(--sand); padding: 8px 18px; border-radius: var(--radius); font-size: 0.9rem; white-space: nowrap; }
-.vr-badge button { background: none; border: 0; color: inherit; text-decoration: underline; cursor: pointer; }
+
+.btn-tour { gap: 10px; }
+.tour-badge { font-family: var(--f-display); font-weight: 700; font-size: 0.85rem; background: var(--deep); color: var(--sand); padding: 3px 7px; border-radius: 3px; }
+
+.tour-page { background: var(--deep); color: var(--sand); }
+.tour-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-block: 32px 22px; }
+.tour-title { font-size: clamp(2rem, 5vw, 3.2rem); color: var(--white); }
+.tour-intro { opacity: 0.85; margin-top: 6px; max-width: 60ch; }
+.tour-hint { font-size: 0.92rem; opacity: 0.7; }
+.tour-viewer { position: relative; height: calc(100svh - var(--header) - 120px); min-height: 420px; background: #0a2430; }
+.tour-viewer iframe { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; border: 0; }
+.tour-viewer:fullscreen { height: 100%; }
+.tour-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 0; pointer-events: none; }
+.tour-spinner { width: 40px; height: 40px; border-radius: 50%; border: 3px solid rgba(239, 228, 210, 0.25); border-top-color: var(--sand); animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.tour-controls { position: absolute; top: 14px; inset-inline-end: 14px; z-index: 2; }
+.tour-after { display: flex; justify-content: center; padding-block: 36px 48px; }
+
+/* ── Doors (home → main pages) ── */
+.doors { display: grid; grid-template-columns: repeat(3, 1fr); }
+.door { position: relative; min-height: 72svh; display: flex; align-items: flex-end; overflow: hidden; color: var(--white); }
+.door img { object-fit: cover; transition: transform .8s ease; }
+.door::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(11, 46, 59, 0.82) 0%, rgba(11, 46, 59, 0.1) 55%, rgba(11, 46, 59, 0) 100%); transition: background .4s; }
+.door:hover img { transform: scale(1.05); }
+.door + .door { border-inline-start: 2px solid var(--sand); }
+.door-text { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 8px; padding: 32px; width: 100%; }
+.door-title { font-size: clamp(2rem, 3.2vw, 2.6rem); }
+.door-sub { font-size: 0.98rem; opacity: 0.88; max-width: 34ch; }
+.door-go { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid rgba(255, 253, 249, 0.6); margin-top: 6px; transition: background .3s, border-color .3s; }
+.door:hover .door-go { background: var(--carpet); border-color: var(--carpet); }
+
+.reviews.single { grid-template-columns: 1fr; max-width: 780px; }
+.more-reviews { margin-top: 28px; }
 
 /* ── Photos ── */
 .photo-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
@@ -360,6 +395,9 @@ a:hover .arrow-icon { transform: translateX(3px); }
   .cabin-row:nth-child(even) .cabin-row-img, .exp-item:nth-child(even) .exp-item-img { order: 0; }
   .cabin-aside { position: static; }
   .photo-strip { grid-template-columns: repeat(3, 1fr); }
+  .doors { grid-template-columns: 1fr; }
+  .door { min-height: 56svh; }
+  .door + .door { border-inline-start: 0; border-top: 2px solid var(--sand); }
   .gallery-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 200px; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .footer-brand { grid-column: 1 / -1; }
@@ -373,11 +411,14 @@ a:hover .arrow-icon { transform: translateX(3px); }
   .hero-inner, .cabin-hero-inner { padding-bottom: 76px; }
   .wa-float { width: 52px; height: 52px; bottom: 18px; inset-inline-end: 18px; }
   .wa-tooltip { display: none; }
+  .tour-viewer { height: 72svh; }
+  .hero-actions .btn { flex: 1 1 auto; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
+  .tour-spinner { animation: spin 2s linear infinite !important; }
 }
 
 .vr-text .btn { text-shadow: none; }

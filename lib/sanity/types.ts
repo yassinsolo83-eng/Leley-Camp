@@ -46,10 +46,7 @@ export type HomePage = {
     image?: SanityImage;
     stats?: { _key: string; value?: string; label?: Localized }[];
   };
-  cabinsHeading?: SectionHeading;
-  activitiesHeading?: SectionHeading;
   reviewsHeading?: SectionHeading;
-  galleryHeading?: SectionHeading;
   ctaBand?: { title?: Localized; subtitle?: Localized };
   gallery?: GalleryEntry[];
   videoUrl?: string;
@@ -61,6 +58,7 @@ export type Pages = {
   experiences?: PageHeader;
   gallery?: PageHeader;
   videoHeading?: SectionHeading;
+  tour?: PageHeader;
   booking?: PageHeader;
   pricesHeading?: SectionHeading;
   formHeading?: SectionHeading;

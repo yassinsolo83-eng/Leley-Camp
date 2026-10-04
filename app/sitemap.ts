@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getPageData, siteUrl } from "@/lib/data";
 
-const PATHS = ["", "/cabins", "/experiences", "/gallery", "/booking", "/about"];
+const PATHS = ["", "/cabins", "/experiences", "/gallery", "/tour", "/booking", "/about"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { cabins, settings } = await getPageData();
