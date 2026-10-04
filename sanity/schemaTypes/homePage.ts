@@ -18,7 +18,10 @@ export const homePage = defineType({
       defineField({ name: "badge", title: "Small line above the title", type: "localeString" }),
       defineField({ name: "title", title: "Big title", type: "localeString" }),
       defineField({ name: "subtitle", title: "Subtitle", type: "localeText" }),
-      defineField({ name: "image", title: "Background photo", type: "image", options: { hotspot: true } }),
+      defineField({ name: "image", title: "Background photo", type: "image", options: { hotspot: true },
+        description: "Shown on computers and tablets. A wide or panoramic photo works best." }),
+      defineField({ name: "mobileImage", title: "Background photo for phones", type: "image", options: { hotspot: true },
+        description: "Optional. A tall (portrait) photo shown on phones instead of the one above. Leave empty to use the same photo." }),
     ]}),
     defineField({ name: "vrSection", title: "360° tour banner (Gallery page)", type: "object", group: "hero", fields: [
       defineField({ name: "title", title: "Title", type: "localeString" }),
