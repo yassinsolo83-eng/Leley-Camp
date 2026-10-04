@@ -58,7 +58,13 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
 
       <section className="hero">
-        <Backdrop src={imageUrl(home?.hero?.image, FALLBACK.hero)} position={imagePosition(home?.hero?.image)} priority />
+        <Backdrop
+          src={imageUrl(home?.hero?.image, FALLBACK.hero)}
+          position={imagePosition(home?.hero?.image)}
+          mobileSrc={imageUrl(home?.hero?.mobileImage)}
+          mobilePosition={imagePosition(home?.hero?.mobileImage)}
+          priority
+        />
         <div className="container hero-inner">
           {badge && <p className="hero-badge">{badge}</p>}
           <h1 className="display hero-title">{heroTitle}</h1>
