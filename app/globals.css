@@ -131,6 +131,8 @@ a:hover .arrow-icon { transform: translateX(3px); }
   z-index: 0; pointer-events: none;
   transform: translateZ(0); will-change: transform; backface-visibility: hidden; /* own GPU layer = no shaking */
 }
+.backdrop-art { object-fit: cover; object-position: var(--pos); }
+@media (max-width: 767px) { .backdrop-art { object-position: var(--pos-phone); } }
 .hero::before, .cabin-hero::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(11, 46, 59, 0.72) 0%, rgba(11, 46, 59, 0.18) 38%, rgba(11, 46, 59, 0) 62%); }
 .hero-inner, .cabin-hero-inner { position: relative; z-index: 2; padding-bottom: 96px; }
 .hero-badge { font-size: 0.98rem; color: var(--sand); opacity: 0.9; margin-bottom: 14px; }
