@@ -415,6 +415,13 @@ a:hover .arrow-icon { transform: translateX(3px); }
   .wa-tooltip { display: none; }
   .tour-viewer { height: 72svh; }
   .hero-actions .btn { flex: 1 1 auto; }
+
+  /* Phones: shorter page headers, and the still photo is sized to the header
+     (not the whole tall screen), so wide photos show more and stay sharp. */
+  .page-hero, .cabin-hero { height: max(360px, 55svh); min-height: 0; }
+  .page-hero .backdrop, .cabin-hero .backdrop { top: var(--header); height: max(360px, 55svh); }
+  .page-hero-inner { padding-bottom: 60px; }
+  .page-hero h1 { font-size: 2.4rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
