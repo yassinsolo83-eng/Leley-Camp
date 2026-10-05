@@ -233,7 +233,12 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
             </div>
             <div className={cls("guests")}>
               <label htmlFor="r-guests">{dict.formGuests}</label>
-              <input id="r-guests" type="number" inputMode="numeric" min={1} max={50} value={fields.guests} onChange={set("guests")} required />
+              <input
+                id="r-guests" type="number" inputMode="numeric" min={1} max={50}
+                value={fields.guests} onChange={set("guests")} required
+                disabled={!!selectedPlan?.guestsIncluded}
+              />
+              {!!selectedPlan?.guestsIncluded && <span className="field-hint checking">{dict.formGuestsFixed}</span>}
             </div>
             {cabins.length > 0 && (
               <div className={cls("cabin")}>
