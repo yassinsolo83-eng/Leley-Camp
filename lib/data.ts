@@ -64,7 +64,14 @@ export async function pageMetadata(lang: Locale, path: string, header?: PageHead
       languages: { en: localePath("en", path), ar: localePath("ar", path), "x-default": localePath("en", path) },
     },
     manifest: "/manifest.json",
-    icons: { icon: "/images/icon-192.png", apple: "/images/icon-192.png" },
+    icons: {
+      icon: [
+        { url: "/favicon.ico", sizes: "any" },
+        { url: "/images/icon-192.png", sizes: "192x192", type: "image/png" },
+        { url: "/images/icon-512.png", sizes: "512x512", type: "image/png" },
+      ],
+      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    },
     appleWebApp: { capable: true, title: name, statusBarStyle: "black-translucent" },
     openGraph: {
       type: "website",
