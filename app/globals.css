@@ -442,3 +442,38 @@ a:hover .arrow-icon { transform: translateX(3px); }
 }
 
 .vr-text .btn { text-shadow: none; }
+
+/* ── Home intro overlay: the rug weaves in, then the panel lifts to reveal the hero ──
+   Hidden by default, so no-JS, repeat visits this session, and reduced-motion
+   visitors go straight to the hero. components/IntroWeave.tsx opts in once per
+   session by injecting a <style> tag (see the note below) before the first paint.
+   Reuses the weave / weave-rtl keyframes defined above. */
+.leley-intro {
+  position: fixed; inset: 0; z-index: 1200; display: none; pointer-events: none;
+  flex-direction: column; align-items: center; justify-content: center; gap: 26px;
+  background: var(--deep); overflow: hidden;
+}
+.leley-intro::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(120% 80% at 50% 38%, rgba(31, 143, 152, 0.22), transparent 60%);
+}
+.leley-intro-band { position: relative; z-index: 1; width: 100vw; }
+.leley-rug-row { height: 30px; background: var(--rug) repeat-x; background-size: 34px 30px; clip-path: inset(0 100% 0 0); }
+.leley-rug-row-flip { transform: scaleY(-1); }
+.leley-intro-logo { position: relative; z-index: 1; opacity: 0; transform: translateY(16px) scale(0.9); }
+.leley-intro-logo img { width: 92px; height: 92px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px var(--deep), 0 0 0 4px var(--carpet), 0 14px 40px rgba(0, 0, 0, 0.35); }
+.leley-intro-name { position: relative; z-index: 1; text-align: center; color: var(--sand); opacity: 0; transform: translateY(14px); }
+.leley-intro-name .display { display: block; font-size: clamp(2.4rem, 7vw, 3.6rem); color: var(--white); line-height: 1.1; }
+.leley-intro-badge { display: block; margin-top: 8px; font-size: 0.95rem; letter-spacing: 0.04em; opacity: 0.8; }
+
+/* The "play" rules (display + animations) are injected as a <style> tag by
+   components/IntroWeave.tsx once per session, so they are not tied to a class on
+   <html> that React would reset on hydration. They reference the keyframes below. */
+
+@keyframes li-pop { to { opacity: 1; transform: none; } }
+@keyframes li-rise { to { opacity: 1; transform: none; } }
+@keyframes li-lift { to { transform: translateY(-102%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .leley-intro { display: none !important; }
+}
