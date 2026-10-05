@@ -444,9 +444,9 @@ a:hover .arrow-icon { transform: translateX(3px); }
 .vr-text .btn { text-shadow: none; }
 
 /* ── Home intro overlay: the rug weaves in, then the panel lifts to reveal the hero ──
-   Hidden by default, so no-JS, repeat visits this session, and reduced-motion
-   visitors go straight to the hero. components/IntroWeave.tsx opts in once per
-   session by injecting a <style> tag (see the note below) before the first paint.
+   Hidden by default, so no-JS and reduced-motion visitors go straight to the hero.
+   components/IntroWeave.tsx opts in on every home-page load by injecting a <style>
+   tag (see the note below) before the first paint.
    Reuses the weave / weave-rtl keyframes defined above. */
 .leley-intro {
   position: fixed; inset: 0; z-index: 1200; display: none; pointer-events: none;
