@@ -19,18 +19,21 @@ export async function POST(request: Request) {
   // only a UX convenience — re-check here before trusting it. If it has gone stale
   // (disabled, expired) between typing and submitting, drop it silently rather than
   // fail the whole booking request over a promo code.
+  type PromoDoc = {
+    _id: string; discountType?: string; value?: number; currency?: string;
+    perkDescription?: string; reason?: string; source?: string; status?: string; expiresAt?: string;
+  };
   const promoCodeRaw = clip(body.promoCode, 40).toUpperCase();
-  let promo: { _id: string; discountType?: string; value?: number; currency?: string; perkDescription?: string; reason?: string; source?: string } | null = null;
+  let promo: PromoDoc | null = null;
   if (promoCodeRaw) {
     try {
-      const found = await readClient.fetch<typeof promo | null>(
+      const found = await readClient.fetch<PromoDoc | null>(
         `*[_type == "promoCode" && upper(code) == $code][0]{ _id, discountType, value, currency, perkDescription, reason, source, status, expiresAt }`,
         { code: promoCodeRaw },
         { cache: "no-store" }
       );
       const today = new Date().toISOString().slice(0, 10);
-      const f = found as (typeof promo & { status?: string; expiresAt?: string }) | null;
-      if (f && f.status === "active" && (!f.expiresAt || f.expiresAt >= today)) promo = f;
+      if (found && found.status === "active" && (!found.expiresAt || found.expiresAt >= today)) promo = found;
     } catch (error) {
       console.error("Promo code lookup failed (booking request still proceeds):", error);
     }
