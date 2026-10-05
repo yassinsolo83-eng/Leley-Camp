@@ -57,6 +57,10 @@ ul, ol { list-style: none; }
 .rug { height: 28px; background: var(--rug) repeat-x; background-size: 32px 28px; }
 .rug-bottom { position: absolute; inset-inline: 0; bottom: 0; z-index: 2; }
 
+/* The rug weaves itself in, tile by tile, on the first home visit (turned on from app/[lang]/layout.tsx). */
+@keyframes weave { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes weave-rtl { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
+
 /* ── Buttons & links ── */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -251,7 +255,10 @@ a:hover .arrow-icon { transform: translateX(3px); }
 .vr-sub { opacity: 0.85; margin-bottom: 12px; }
 
 .btn-tour { gap: 10px; }
-.tour-badge { font-family: var(--f-display); font-weight: 700; font-size: 0.85rem; background: var(--deep); color: var(--sand); padding: 3px 7px; border-radius: 3px; }
+.tour-badge { display: inline-flex; align-items: center; gap: 5px; font-family: var(--f-display); font-weight: 700; font-size: 0.85rem; background: var(--deep); color: var(--sand); padding: 3px 8px 3px 6px; border-radius: 3px; }
+/* Slow, endless turn so the eye finds the tour button. */
+.tour-orbit { animation: orbit 6s linear infinite; }
+@keyframes orbit { to { transform: rotate(360deg); } }
 
 .tour-page { background: var(--deep); color: var(--sand); }
 .tour-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-block: 32px 22px; }
