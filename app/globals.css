@@ -25,6 +25,7 @@
   --wrap: 1200px;
 
   --rug: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='28' viewBox='0 0 32 28'%3E%3Crect width='32' height='28' fill='%239B2C2C'/%3E%3Crect width='32' height='3' fill='%230F3A4A'/%3E%3Crect y='25' width='32' height='3' fill='%230F3A4A'/%3E%3Cpath d='M0 3l4 4 4-4 4 4 4-4 4 4 4-4 4 4 4-4z' fill='%23EFE4D2'/%3E%3Cpath d='M0 25l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4z' fill='%23EFE4D2'/%3E%3Cpath d='M9 14l7-6 7 6-7 6z' fill='%23EFE4D2'/%3E%3Cpath d='M12.5 14l3.5-3 3.5 3-3.5 3z' fill='%230F3A4A'/%3E%3Cpath d='M-3 14l3-3 3 3-3 3zM29 14l3-3 3 3-3 3z' fill='%231F8F98'/%3E%3C/svg%3E");
+  --rug-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='32' viewBox='0 0 28 32'%3E%3Cg transform='translate(28 0) rotate(90)'%3E%3Crect width='32' height='28' fill='%239B2C2C'/%3E%3Crect width='32' height='3' fill='%230F3A4A'/%3E%3Crect y='25' width='32' height='3' fill='%230F3A4A'/%3E%3Cpath d='M0 3l4 4 4-4 4 4 4-4 4 4 4-4 4 4 4-4z' fill='%23EFE4D2'/%3E%3Cpath d='M0 25l4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4z' fill='%23EFE4D2'/%3E%3Cpath d='M9 14l7-6 7 6-7 6z' fill='%23EFE4D2'/%3E%3Cpath d='M12.5 14l3.5-3 3.5 3-3.5 3z' fill='%230F3A4A'/%3E%3Cpath d='M-3 14l3-3 3 3-3 3zM29 14l3-3 3 3-3 3z' fill='%231F8F98'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -272,8 +273,10 @@ a:hover .arrow-icon { transform: translateX(3px); }
 .door img { object-fit: cover; transition: transform .8s ease; }
 .door::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(11, 46, 59, 0.82) 0%, rgba(11, 46, 59, 0.1) 55%, rgba(11, 46, 59, 0) 100%); transition: background .4s; }
 .door:hover img { transform: scale(1.05); }
-.door + .door { border-inline-start: 2px solid var(--sand); }
+/* Rug strip between the three photos: upright on computers, flat on phones. */
+.door + .door::after { content: ""; position: absolute; z-index: 3; top: 0; bottom: 0; inset-inline-start: 0; width: 28px; background: var(--rug-v) repeat-y; background-size: 28px 32px; }
 .door-text { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 8px; padding: 32px; width: 100%; }
+.door + .door .door-text { padding-inline-start: 56px; }
 .door-title { font-size: clamp(2rem, 3.2vw, 2.6rem); }
 .door-sub { font-size: 0.98rem; opacity: 0.88; max-width: 34ch; }
 .door-go { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid rgba(255, 253, 249, 0.6); margin-top: 6px; transition: background .3s, border-color .3s; }
@@ -399,7 +402,8 @@ a:hover .arrow-icon { transform: translateX(3px); }
   .photo-strip { grid-template-columns: repeat(3, 1fr); }
   .doors { grid-template-columns: 1fr; }
   .door { min-height: 56svh; }
-  .door + .door { border-inline-start: 0; border-top: 2px solid var(--sand); }
+  .door + .door::after { bottom: auto; inset-inline: 0; width: auto; height: 28px; background: var(--rug) repeat-x; background-size: 32px 28px; }
+  .door + .door .door-text { padding-inline-start: 32px; }
   .gallery-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 200px; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .footer-brand { grid-column: 1 / -1; }
