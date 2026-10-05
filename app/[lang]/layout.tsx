@@ -27,13 +27,8 @@ export default async function LangLayout({ children, params }: LayoutProps<"/[la
   return (
     <html lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
       <body>
-        {/* First home-page view of this visit: let the rug under the hero weave itself in (keyframes in globals.css).
-            A style tag is added instead of a class on <html>, because React resets that class. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{if(["/en","/en/","/ar","/ar/"].indexOf(location.pathname)>-1&&!sessionStorage.getItem("leley-woven")){var s=document.createElement("style");s.textContent=".rug-weave{animation:weave 1.8s steps(36,end) .4s both}[dir=rtl] .rug-weave{animation-name:weave-rtl}";document.head.appendChild(s);sessionStorage.setItem("leley-woven","1")}}catch(e){}`,
-          }}
-        />
+        {/* The first home-page view of each session plays the intro overlay (components/IntroWeave.tsx),
+            where the rug weaves in and the panel lifts to reveal the hero. */}
         <a className="skip-link" href="#main">{ctx.dict.skipToContent}</a>
         <SiteHeader
           lang={lang}
