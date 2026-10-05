@@ -47,14 +47,22 @@ export const pricePlan = defineType({
     defineField({ name: "price", title: "Price", type: "number", validation: (r) => r.required().min(0) }),
     defineField({ name: "currency", title: "Currency", type: "string", initialValue: "EGP" }),
     defineField({ name: "unit", title: "Per", type: "localeString", description: "Example: / night per person" }),
+    defineField({
+      name: "guestsIncluded", title: "Guests this fits", type: "number",
+      description: "If this package is for a fixed number of guests (Double → 2, Triple → 3), enter it here — the booking form fills in the Guests field automatically when the guest picks it. Leave empty for packages without a fixed headcount.",
+      validation: (r) => r.min(1).integer(),
+    }),
     defineField({ name: "features", title: "What's included", type: "array", of: [defineArrayMember({ type: "localeString" })] }),
     defineField({ name: "featured", title: "Highlight this plan", type: "boolean", initialValue: false }),
     defineField({ name: "badge", title: "Highlight badge", type: "localeString", description: "Example: Most popular", hidden: ({ parent }) => !parent?.featured }),
     defineField({ name: "active", title: "Show on the website", type: "boolean", initialValue: true }),
     order,
   ],
-  preview: { select: { title: "name.en", price: "price", currency: "currency", active: "active" },
-    prepare: ({ title, price, currency, active }) => ({ title: title || "Plan", subtitle: `${price ?? "—"} ${currency || ""}${active === false ? " · hidden" : ""}` }) },
+  preview: { select: { title: "name.en", price: "price", currency: "currency", active: "active", guests: "guestsIncluded" },
+    prepare: ({ title, price, currency, active, guests }) => ({
+      title: title || "Plan",
+      subtitle: `${price ?? "—"} ${currency || ""}${guests ? ` · fits ${guests}` : ""}${active === false ? " · hidden" : ""}`,
+    }) },
 });
 
 export const review = defineType({

@@ -39,6 +39,9 @@ export async function POST(request: Request) {
     }
   }
 
+  const planPriceNum = Number(body.planPrice);
+  const hasPlanPrice = Number.isFinite(planPriceNum) && planPriceNum >= 0;
+
   const doc = {
     _type: "inquiry",
     status: "new",
@@ -50,6 +53,7 @@ export async function POST(request: Request) {
     guests: Math.min(Math.max(parseInt(String(body.guests), 10) || 0, 0), 50),
     cabin: clip(body.cabin, 120),
     plan: clip(body.plan, 120),
+    ...(hasPlanPrice && { planPrice: planPriceNum, planCurrency: clip(body.planCurrency, 10), planUnit: clip(body.planUnit, 60) }),
     message: clip(body.message, 1500),
     language: body.language === "ar" ? "ar" : "en",
     submittedAt: new Date().toISOString(),

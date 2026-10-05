@@ -32,6 +32,13 @@ export const inquiry = defineType({
       defineField({ name: "language", title: "Site language", type: "string" }),
       defineField({ name: "submittedAt", title: "Sent at", type: "datetime" }),
     ].map((f) => ({ ...f, group: ["request", "handling"], readOnly: true })),
+    // A snapshot of the package's price as it was at submission time — not a live
+    // reference, so this stays accurate even if the plan's price changes later.
+    ...[
+      defineField({ name: "planPrice", title: "Package price", type: "number" }),
+      defineField({ name: "planCurrency", title: "Currency", type: "string" }),
+      defineField({ name: "planUnit", title: "Per", type: "string" }),
+    ].map((f) => ({ ...f, group: ["request", "handling"], readOnly: true, hidden: ({ parent }: { parent?: { planPrice?: number } }) => parent?.planPrice == null })),
     // A snapshot of the promo code as it was at submission time — not a live reference,
     // so this stays accurate even if the code is edited or disabled afterwards.
     ...[

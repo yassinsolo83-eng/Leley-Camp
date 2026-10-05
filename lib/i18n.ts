@@ -69,6 +69,8 @@ export const DEFAULT_LABELS = {
   formMissing: "Please fill in your name, phone, dates and number of guests.",
   formDates: "Check-out must be after check-in.",
   formAlsoWhatsapp: "Send the same details on WhatsApp",
+  formPlanSelected: "Package selected",
+  formPlanClear: "Change",
   formPromoCode: "Promo code (optional)",
   formPromoChecking: "Checking…",
   formPromoApplied: "Code applied",

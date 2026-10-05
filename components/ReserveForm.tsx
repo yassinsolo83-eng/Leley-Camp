@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { whatsappLink, type Dictionary } from "@/lib/i18n";
+import { formatNumber, whatsappLink, type Dictionary } from "@/lib/i18n";
 import type { Locale } from "@/lib/sanity/types";
 import { CHOOSE_PLAN_EVENT } from "./PricePlans";
 import { WhatsAppIcon } from "./icons";
 
-type Option = { value: string; label: string; slug?: string };
+type Option = { value: string; label: string; slug?: string; price?: number; currency?: string; unit?: string; guestsIncluded?: number };
 
 type Props = {
   cabins: Option[];
@@ -40,6 +40,7 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
   const [sentSummary, setSentSummary] = useState("");
   const [promoStatus, setPromoStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
   const [promoResult, setPromoResult] = useState<PromoResult | null>(null);
+  const [planJustChosen, setPlanJustChosen] = useState(false);
 
   // Checks the promo code against /api/promo a moment after the guest stops typing.
   // The reason/source behind the discount are never sent to the browser — only the
@@ -77,12 +78,37 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
     };
   }, [fields.promoCode]);
 
+  // Sets the plan and, if that plan has a fixed headcount (Double → 2, Triple → 3),
+  // fills Guests to match — used by both the "Choose this" buttons and the dropdown
+  // below, so the two stay consistent. The guest can still type a different number
+  // afterwards; this only sets the starting value at the moment of choosing.
+  function applyPlan(value: string) {
+    setFields((f) => {
+      const match = plans.find((p) => p.value === value);
+      const guests = match?.guestsIncluded ? String(match.guestsIncluded) : f.guests;
+      return { ...f, plan: value, guests };
+    });
+    setInvalid((list) => list.filter((k) => k !== "plan" && k !== "guests"));
+  }
+
   // A "Choose this" button in the prices section pre-selects the package here.
   useEffect(() => {
-    const onChoose = (e: Event) => setFields((f) => ({ ...f, plan: String((e as CustomEvent).detail || "") }));
+    const onChoose = (e: Event) => {
+      applyPlan(String((e as CustomEvent).detail || ""));
+      setPlanJustChosen(true);
+    };
     window.addEventListener(CHOOSE_PLAN_EVENT, onChoose);
     return () => window.removeEventListener(CHOOSE_PLAN_EVENT, onChoose);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plans]);
+
+  // The pulse is a one-off cue for the moment of choosing — switch it off shortly after
+  // so it doesn't linger or replay if the component re-renders for another reason.
+  useEffect(() => {
+    if (!planJustChosen) return;
+    const t = setTimeout(() => setPlanJustChosen(false), 1300);
+    return () => clearTimeout(t);
+  }, [planJustChosen]);
 
   // "Book this cabin" links arrive as /booking?cabin=<slug>#reserve.
   useEffect(() => {
@@ -102,6 +128,8 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
     if (r.discountType === "perk" && r.perkDescription) return `${dict.formPromoApplied} — ${r.perkDescription}`;
     return dict.formPromoApplied;
   }
+
+  const selectedPlan = plans.find((p) => p.value === fields.plan);
 
   function summary(f: Fields) {
     const label = (list: Option[], value: string) => list.find((o) => o.value === value)?.label || value;
@@ -140,7 +168,13 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
       const res = await fetch("/api/inquiry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...fields, language: lang }),
+        body: JSON.stringify({
+          ...fields,
+          planPrice: selectedPlan?.price,
+          planCurrency: selectedPlan?.currency,
+          planUnit: selectedPlan?.unit,
+          language: lang,
+        }),
       });
       if (!res.ok) throw new Error(String(res.status));
       setSentSummary(summary(fields));
@@ -154,9 +188,29 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
 
   const cls = (key: keyof Fields, full = false) => `field${full ? " full" : ""}${invalid.includes(key) ? " invalid" : ""}`;
   const wa = sentSummary ? whatsappLink(whatsappNumber, sentSummary) : "";
+  const clearPlan = () => {
+    setFields((f) => ({ ...f, plan: "" }));
+    setPlanJustChosen(false);
+  };
 
   return (
           <form className="reserve-form" onSubmit={submit} noValidate>
+            {selectedPlan && (
+              <div className={`plan-confirm${planJustChosen ? " pulse" : ""}`}>
+                <div>
+                  <p className="plan-confirm-label">{dict.formPlanSelected}</p>
+                  <p className="plan-confirm-name">{selectedPlan.label}</p>
+                  {typeof selectedPlan.price === "number" && (
+                    <p className="plan-confirm-price">
+                      {formatNumber(selectedPlan.price)} {selectedPlan.currency} {selectedPlan.unit}
+                    </p>
+                  )}
+                </div>
+                <button type="button" className="plan-confirm-clear" onClick={clearPlan}>
+                  {dict.formPlanClear}
+                </button>
+              </div>
+            )}
             <div className={cls("name", true)}>
               <label htmlFor="r-name">{dict.formName}</label>
               <input id="r-name" autoComplete="name" value={fields.name} onChange={set("name")} required maxLength={100} />
@@ -193,7 +247,7 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
             {plans.length > 0 && (
               <div className={cls("plan", true)}>
                 <label htmlFor="r-plan">{dict.formPlan}</label>
-                <select id="r-plan" value={fields.plan} onChange={set("plan")}>
+                <select id="r-plan" value={fields.plan} onChange={(e) => applyPlan(e.target.value)}>
                   <option value="">{dict.formNoPlan}</option>
                   {plans.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
                 </select>

@@ -84,6 +84,7 @@ export type PricePlan = {
   price?: number;
   currency?: string;
   unit?: Localized;
+  guestsIncluded?: number;
   features?: Localized[];
   featured?: boolean;
   badge?: Localized;

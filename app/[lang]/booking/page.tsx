@@ -43,7 +43,9 @@ export default async function BookingPage({ params }: PageProps<"/[lang]/booking
           </div>
           <ReserveForm
             cabins={cabins.map((c) => ({ value: tr(c.name, "en"), label: tr(c.name, lang), slug: c.slug })).filter((o) => o.value)}
-            plans={prices.map((p) => ({ value: tr(p.name, "en"), label: tr(p.name, lang) })).filter((o) => o.value)}
+            plans={prices
+              .map((p) => ({ value: tr(p.name, "en"), label: tr(p.name, lang), price: p.price, currency: p.currency, unit: tr(p.unit, lang), guestsIncluded: p.guestsIncluded }))
+              .filter((o) => o.value)}
             whatsappNumber={s?.whatsappNumber}
             lang={lang}
             dict={dict}
