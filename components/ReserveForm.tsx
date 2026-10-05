@@ -18,10 +18,12 @@ type Props = {
 
 type Fields = {
   name: string; phone: string; email: string; checkIn: string; checkOut: string;
-  guests: string; cabin: string; plan: string; message: string; company: string;
+  guests: string; cabin: string; plan: string; message: string; company: string; promoCode: string;
 };
 
-const EMPTY: Fields = { name: "", phone: "", email: "", checkIn: "", checkOut: "", guests: "2", cabin: "", plan: "", message: "", company: "" };
+type PromoResult = { discountType: string; value: number | null; currency: string | null; perkDescription: string | null };
+
+const EMPTY: Fields = { name: "", phone: "", email: "", checkIn: "", checkOut: "", guests: "2", cabin: "", plan: "", message: "", company: "", promoCode: "" };
 const REQUIRED: (keyof Fields)[] = ["name", "phone", "checkIn", "checkOut", "guests"];
 
 function today() {
@@ -36,6 +38,44 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [error, setError] = useState("");
   const [sentSummary, setSentSummary] = useState("");
+  const [promoStatus, setPromoStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
+  const [promoResult, setPromoResult] = useState<PromoResult | null>(null);
+
+  // Checks the promo code against /api/promo a moment after the guest stops typing.
+  // The reason/source behind the discount are never sent to the browser — only the
+  // discount itself (see app/api/promo/route.ts).
+  useEffect(() => {
+    const code = fields.promoCode.trim();
+    if (!code) {
+      setPromoStatus("idle");
+      setPromoResult(null);
+      return;
+    }
+    setPromoStatus("checking");
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/promo?code=${encodeURIComponent(code)}`, { signal: controller.signal });
+        const data = await res.json();
+        if (data?.valid) {
+          setPromoResult({ discountType: data.discountType, value: data.value, currency: data.currency, perkDescription: data.perkDescription });
+          setPromoStatus("valid");
+        } else {
+          setPromoResult(null);
+          setPromoStatus("invalid");
+        }
+      } catch {
+        if (!controller.signal.aborted) {
+          setPromoResult(null);
+          setPromoStatus("invalid");
+        }
+      }
+    }, 500);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [fields.promoCode]);
 
   // A "Choose this" button in the prices section pre-selects the package here.
   useEffect(() => {
@@ -56,6 +96,13 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
     setInvalid((list) => list.filter((k) => k !== key));
   };
 
+  function promoText(r: PromoResult) {
+    if (r.discountType === "percentage" && r.value) return `${dict.formPromoApplied} — ${r.value}%`;
+    if (r.discountType === "fixed" && r.value) return `${dict.formPromoApplied} — ${r.value} ${r.currency || ""}`.trim();
+    if (r.discountType === "perk" && r.perkDescription) return `${dict.formPromoApplied} — ${r.perkDescription}`;
+    return dict.formPromoApplied;
+  }
+
   function summary(f: Fields) {
     const label = (list: Option[], value: string) => list.find((o) => o.value === value)?.label || value;
     return [
@@ -66,6 +113,7 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
       `${dict.formGuests}: ${f.guests}`,
       f.cabin && `${dict.formCabin}: ${label(cabins, f.cabin)}`,
       f.plan && `${dict.formPlan}: ${label(plans, f.plan)}`,
+      f.promoCode && `${dict.formPromoCode}: ${f.promoCode}`,
       f.message && f.message,
     ].filter(Boolean).join("\n");
   }
@@ -151,6 +199,14 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
                 </select>
               </div>
             )}
+            <div className={cls("promoCode", true)}>
+              <label htmlFor="r-promo">{dict.formPromoCode}</label>
+              <input id="r-promo" dir="ltr" autoComplete="off" value={fields.promoCode} onChange={set("promoCode")} maxLength={40} />
+              {promoStatus === "checking" && <span className="field-hint checking">{dict.formPromoChecking}</span>}
+              {promoStatus === "valid" && promoResult && <span className="field-hint ok">{promoText(promoResult)}</span>}
+              {promoStatus === "invalid" && <span className="field-hint bad">{dict.formPromoInvalid}</span>}
+            </div>
+
             <div className={cls("message", true)}>
               <label htmlFor="r-message">{dict.formMessage}</label>
               <textarea id="r-message" value={fields.message} onChange={set("message")} maxLength={1500} />

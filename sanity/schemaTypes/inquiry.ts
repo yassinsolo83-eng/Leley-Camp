@@ -32,13 +32,24 @@ export const inquiry = defineType({
       defineField({ name: "language", title: "Site language", type: "string" }),
       defineField({ name: "submittedAt", title: "Sent at", type: "datetime" }),
     ].map((f) => ({ ...f, group: ["request", "handling"], readOnly: true })),
+    // A snapshot of the promo code as it was at submission time — not a live reference,
+    // so this stays accurate even if the code is edited or disabled afterwards.
+    ...[
+      defineField({ name: "promoCode", title: "Promo code used", type: "string" }),
+      defineField({ name: "promoDiscountType", title: "Discount type", type: "string" }),
+      defineField({ name: "promoValue", title: "Amount", type: "number" }),
+      defineField({ name: "promoCurrency", title: "Currency", type: "string" }),
+      defineField({ name: "promoPerkDescription", title: "Perk", type: "string" }),
+      defineField({ name: "promoReason", title: "Discount reason", type: "string" }),
+      defineField({ name: "promoSource", title: "Referred by", type: "string" }),
+    ].map((f) => ({ ...f, group: ["request", "handling"], readOnly: true, hidden: ({ parent }: { parent?: { promoCode?: string } }) => !parent?.promoCode })),
   ],
   orderings: [{ title: "Newest first", name: "newest", by: [{ field: "submittedAt", direction: "desc" }] }],
   preview: {
-    select: { name: "name", checkIn: "checkIn", checkOut: "checkOut", guests: "guests", status: "status" },
-    prepare: ({ name, checkIn, checkOut, guests, status }) => ({
+    select: { name: "name", checkIn: "checkIn", checkOut: "checkOut", guests: "guests", status: "status", promoCode: "promoCode" },
+    prepare: ({ name, checkIn, checkOut, guests, status, promoCode }) => ({
       title: `${status === "new" ? "🆕 " : status === "confirmed" ? "✅ " : status === "cancelled" ? "✖️ " : "📞 "}${name || "Request"}`,
-      subtitle: [checkIn && checkOut ? `${checkIn} → ${checkOut}` : "", guests ? `${guests} guests` : ""].filter(Boolean).join(" · "),
+      subtitle: [checkIn && checkOut ? `${checkIn} → ${checkOut}` : "", guests ? `${guests} guests` : "", promoCode ? `🏷️ ${promoCode}` : ""].filter(Boolean).join(" · "),
     }),
   },
 });

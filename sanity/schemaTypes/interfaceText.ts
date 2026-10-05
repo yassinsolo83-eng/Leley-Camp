@@ -6,7 +6,7 @@ import { DEFAULT_LABELS, type LabelKey } from "../../lib/i18n";
 const GROUPS: { name: string; title: string; keys: LabelKey[] }[] = [
   { name: "nav", title: "Menu & buttons", keys: ["navHome", "navCabins", "navExperiences", "navGallery", "navTour", "navBooking", "navAbout", "menu", "bookNow", "languageName", "heroCta", "whatsappUs", "chatWithUs"] },
   { name: "sections", title: "Sections", keys: ["ourStory", "tourCta", "fullscreen", "openInNewTab", "moreReviews", "viewCabin", "allCabins", "allExperiences", "seeAllPhotos", "bookThisCabin", "otherCabins", "amenities", "launchTour", "vrHint", "close", "previous", "next", "ratedByGuests", "viewOnMaps", "basedOnReviews", "choosePlan", "notFound", "backHome", "skipToContent"] },
-  { name: "form", title: "Booking form", keys: ["formName", "formPhone", "formEmail", "formCheckIn", "formCheckOut", "formGuests", "formCabin", "formAnyCabin", "formPlan", "formNoPlan", "formMessage", "formSubmit", "formSending", "formSuccess", "formError", "formMissing", "formDates", "formAlsoWhatsapp"] },
+  { name: "form", title: "Booking form", keys: ["formName", "formPhone", "formEmail", "formCheckIn", "formCheckOut", "formGuests", "formCabin", "formAnyCabin", "formPlan", "formNoPlan", "formMessage", "formSubmit", "formSending", "formSuccess", "formError", "formMissing", "formDates", "formAlsoWhatsapp", "formPromoCode", "formPromoChecking", "formPromoApplied", "formPromoInvalid"] },
   { name: "links", title: "Links & footer", keys: ["bookOnBooking", "bookOnBookingSub", "vrCard", "vrCardSub", "facebookCard", "facebookCardSub", "instagramCard", "callUs", "footerExplore", "footerContact", "googleMaps", "vrTour", "facebook", "instagram", "allRights", "visitors"] },
 ];
 

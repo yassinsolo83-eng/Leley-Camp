@@ -22,6 +22,10 @@ export const structure: StructureResolver = (S) =>
               .defaultOrdering([{ field: "submittedAt", direction: "desc" }])),
         ])
       ),
+      S.listItem().title("Promo codes").id("promoCodes").child(
+        S.documentTypeList("promoCode").title("Promo codes")
+          .defaultOrdering([{ field: "_createdAt", direction: "desc" }])
+      ),
       S.divider(),
       singleton(S, "homePage", "Home page"),
       singleton(S, "pages", "Other pages"),
