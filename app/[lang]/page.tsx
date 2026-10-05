@@ -9,6 +9,7 @@ import SectionHeading from "@/components/SectionHeading";
 import RugBand from "@/components/RugBand";
 import ReviewList from "@/components/ReviewList";
 import CtaBand from "@/components/CtaBand";
+import CountUp from "@/components/CountUp";
 import { ArrowIcon, WhatsAppIcon } from "@/components/icons";
 
 export const revalidate = 60;
@@ -73,7 +74,14 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
             <Link className="btn btn-red" href={localePath(lang, "/booking")}>{dict.heroCta}</Link>
             {s?.vrTourUrl && (
               <Link className="btn btn-sand btn-tour" href={localePath(lang, "/tour")}>
-                <span className="tour-badge" dir="ltr" aria-hidden="true">360°</span> {dict.tourCta}
+                <span className="tour-badge" dir="ltr" aria-hidden="true">
+                  <svg className="tour-orbit" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12a9 9 0 1 1-3-6.7" />
+                    <path d="M21 3v5h-5" />
+                  </svg>
+                  360°
+                </span>{" "}
+                {dict.tourCta}
               </Link>
             )}
             {ctx.waUrl && (
@@ -83,7 +91,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
             )}
           </div>
         </div>
-        <RugBand className="rug-bottom" />
+        <RugBand className="rug-bottom rug-weave" />
       </section>
 
       <section className="section intro">
@@ -98,13 +106,13 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
               {home.about.stats.map((st) => (
                 <div key={st._key}>
                   <dt>{tr(st.label, lang)}</dt>
-                  <dd dir="ltr">{st.value}</dd>
+                  <dd dir="ltr">{st.value ? <CountUp value={st.value} /> : null}</dd>
                 </div>
               ))}
               {s?.rating ? (
                 <div>
                   <dt>{dict.ratedByGuests}</dt>
-                  <dd dir="ltr">{s.rating.toFixed(1)}</dd>
+                  <dd dir="ltr"><CountUp value={s.rating.toFixed(1)} /></dd>
                 </div>
               ) : null}
             </dl>
