@@ -7,6 +7,7 @@ import PageHero from "@/components/PageHero";
 import SectionHeading from "@/components/SectionHeading";
 import ReviewList from "@/components/ReviewList";
 import BookLinks from "@/components/BookLinks";
+import CountUp from "@/components/CountUp";
 import { PhoneIcon, PinIcon, WhatsAppIcon } from "@/components/icons";
 
 export const revalidate = 60;
@@ -39,7 +40,7 @@ export default async function AboutPage({ params }: PageProps<"/[lang]/about">) 
             {!!about?.stats?.length && (
               <dl className="stats">
                 {about.stats.map((st) => (
-                  <div key={st._key}><dt>{tr(st.label, lang)}</dt><dd dir="ltr">{st.value}</dd></div>
+                  <div key={st._key}><dt>{tr(st.label, lang)}</dt><dd dir="ltr">{st.value ? <CountUp value={st.value} /> : null}</dd></div>
                 ))}
               </dl>
             )}
