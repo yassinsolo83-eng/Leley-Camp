@@ -7,6 +7,7 @@ import { imagePosition, imageUrl } from "@/lib/sanity/image";
 import Backdrop from "@/components/Backdrop";
 import SectionHeading from "@/components/SectionHeading";
 import RugBand from "@/components/RugBand";
+import IntroWeave from "@/components/IntroWeave";
 import ReviewList from "@/components/ReviewList";
 import CtaBand from "@/components/CtaBand";
 import CountUp from "@/components/CountUp";
@@ -58,6 +59,8 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
 
+      <IntroWeave logoUrl={ctx.logoUrl} campName={ctx.campName} badge={badge} />
+
       <section className="hero">
         <Backdrop
           src={imageUrl(home?.hero?.image, FALLBACK.hero)}
@@ -91,7 +94,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
             )}
           </div>
         </div>
-        <RugBand className="rug-bottom rug-weave" />
+        <RugBand className="rug-bottom" />
       </section>
 
       <section className="section intro">
