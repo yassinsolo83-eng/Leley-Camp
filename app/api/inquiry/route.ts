@@ -7,10 +7,12 @@ const clip = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slic
 const isDate = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v);
 
 export async function POST(request: Request) {
-  // Booking now requires being signed in (see /api/auth) — the customer the request
-  // belongs to comes from the session, never from the request body.
+  // Signing in is the preferred path (status tracking, no duplicate requests) and the
+  // customer this belongs to then comes from the session, never the request body. But
+  // a guest who skips sign-in (or hits a login problem) can still send the same form —
+  // it's just saved without a linked customer, and the front end also opens WhatsApp
+  // with the same details right away, so nothing gets lost in a chat no one revisits.
   const session = sessionFromRequest(request);
-  if (!session) return NextResponse.json({ error: "not_signed_in" }, { status: 401 });
 
   let body: Record<string, unknown>;
   try {
@@ -28,18 +30,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "not_configured" }, { status: 500 });
   }
 
-  // One request in flight at a time per customer — a guest who wants to change
-  // something already-submitted is pointed at WhatsApp instead (see ReserveForm).
-  try {
-    const hasActive = await readClient.fetch<boolean>(
-      `count(*[_type == "inquiry" && customer._ref == $id && status in $statuses]) > 0`,
-      { id: session.customerId, statuses: ACTIVE_STATUSES },
-      { cache: "no-store" }
-    );
-    if (hasActive) return NextResponse.json({ error: "active_booking_exists" }, { status: 409 });
-  } catch (error) {
-    console.error("Could not check for an existing booking request:", error);
-    return NextResponse.json({ error: "save_failed" }, { status: 500 });
+  // One request in flight at a time per signed-in customer — a guest who wants to
+  // change something already-submitted is pointed at WhatsApp instead (see
+  // ReserveForm). There's no identity to check this against for an unsigned-in
+  // (WhatsApp-fallback) submission, so that path always goes through.
+  if (session) {
+    try {
+      const hasActive = await readClient.fetch<boolean>(
+        `count(*[_type == "inquiry" && customer._ref == $id && status in $statuses]) > 0`,
+        { id: session.customerId, statuses: ACTIVE_STATUSES },
+        { cache: "no-store" }
+      );
+      if (hasActive) return NextResponse.json({ error: "active_booking_exists" }, { status: 409 });
+    } catch (error) {
+      console.error("Could not check for an existing booking request:", error);
+      return NextResponse.json({ error: "save_failed" }, { status: 500 });
+    }
   }
 
   // The guest's browser already checked the code live (see /api/promo), but that is
@@ -72,10 +78,10 @@ export async function POST(request: Request) {
   const doc = {
     _type: "inquiry",
     status: "new",
-    customer: { _type: "reference", _ref: session.customerId },
+    ...(session && { customer: { _type: "reference", _ref: session.customerId } }),
     name: clip(body.name, 100),
     phone: clip(body.phone, 30),
-    email: session.email,
+    email: session?.email || "",
     checkIn: clip(body.checkIn, 10),
     checkOut: clip(body.checkOut, 10),
     guests: Math.min(Math.max(parseInt(String(body.guests), 10) || 0, 0), 50),
@@ -122,20 +128,23 @@ export async function POST(request: Request) {
 
   // Keep the customer record (created at sign-in) up to date: name/phone as given on
   // this request, booking count, last-booking date, and a link to the new request.
-  // Never allowed to fail the booking itself.
-  try {
-    const setFields: Record<string, string> = { lastBookingAt: doc.submittedAt };
-    if (doc.name) setFields.name = doc.name;
-    if (doc.phone) setFields.phone = doc.phone;
-    await client
-      .patch(session.customerId)
-      .setIfMissing({ bookingsCount: 0, inquiries: [] })
-      .inc({ bookingsCount: 1 })
-      .set(setFields)
-      .append("inquiries", [{ _type: "reference", _ref: createdId, _key: createdId }])
-      .commit();
-  } catch (error) {
-    console.error("Could not update the customer record (the booking itself was saved fine):", error);
+  // Never allowed to fail the booking itself. Skipped entirely for a WhatsApp-fallback
+  // submission — there's no signed-in customer to attach it to.
+  if (session) {
+    try {
+      const setFields: Record<string, string> = { lastBookingAt: doc.submittedAt };
+      if (doc.name) setFields.name = doc.name;
+      if (doc.phone) setFields.phone = doc.phone;
+      await client
+        .patch(session.customerId)
+        .setIfMissing({ bookingsCount: 0, inquiries: [] })
+        .inc({ bookingsCount: 1 })
+        .set(setFields)
+        .append("inquiries", [{ _type: "reference", _ref: createdId, _key: createdId }])
+        .commit();
+    } catch (error) {
+      console.error("Could not update the customer record (the booking itself was saved fine):", error);
+    }
   }
 
   return NextResponse.json({ ok: true });

@@ -59,6 +59,10 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginStatus, setLoginStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [loginNotice, setLoginNotice] = useState("");
+  // A visible way out for anyone who'd rather not sign in (or whose sign-in email
+  // isn't arriving) — same form, sent straight to WhatsApp instead of needing an
+  // account. See app/api/inquiry/route.ts for how this is saved differently.
+  const [guestMode, setGuestMode] = useState(false);
 
   const [fields, setFields] = useState<Fields>(EMPTY);
   const [invalid, setInvalid] = useState<(keyof Fields)[]>([]);
@@ -267,9 +271,16 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
         return;
       }
       if (!res.ok) throw new Error(String(res.status));
-      setSentSummary(summary(fields));
+      const finishedSummary = summary(fields);
+      setSentSummary(finishedSummary);
       setStatus("sent");
       setFields((f) => ({ ...EMPTY, phoneCountry: f.phoneCountry }));
+      // Guest (not-signed-in) submissions aren't tracked by an account, so WhatsApp
+      // is the only record of them — open it right away instead of waiting for a click.
+      if (auth.state === "out") {
+        const waLink = whatsappLink(whatsappNumber, finishedSummary);
+        if (waLink) window.open(waLink, "_blank", "noopener,noreferrer");
+      }
     } catch {
       setStatus("error");
       setError(dict.formError);
@@ -285,8 +296,9 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
 
   if (auth.state === "checking") return null;
 
-  // Not signed in: all the form asks for is an email to send a sign-in link to.
-  if (auth.state === "out") {
+  // Not signed in and hasn't asked for the WhatsApp fallback: all the form asks for
+  // is an email to send a sign-in link to.
+  if (auth.state === "out" && !guestMode) {
     return (
       <form className="reserve-form" onSubmit={sendLoginLink} noValidate>
         <div className="field full">
@@ -305,19 +317,29 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
             {loginStatus === "sending" ? dict.formSignInSending : dict.formSignInSubmit}
           </button>
         </div>
+        <p className="field-hint">
+          <button type="button" className="form-link" onClick={() => setGuestMode(true)}>{dict.formGuestPrompt}</button>
+        </p>
       </form>
     );
   }
 
-  const active = auth.activeBooking;
+  const active = auth.state === "in" ? auth.activeBooking : null;
 
   return (
     <form className="reserve-form" onSubmit={submit} noValidate>
-      <p className="form-note welcome signed-in-as">
-        {dict.formSignedInAs} {auth.email}
-        {" · "}
-        <button type="button" className="plan-confirm-clear" onClick={signOut}>{dict.formSignOut}</button>
-      </p>
+      {auth.state === "in" && (
+        <p className="form-note welcome signed-in-as">
+          {dict.formSignedInAs} {auth.email}
+          {" · "}
+          <button type="button" className="plan-confirm-clear" onClick={signOut}>{dict.formSignOut}</button>
+        </p>
+      )}
+      {auth.state === "out" && (
+        <p className="field-hint">
+          <button type="button" className="form-link" onClick={() => setGuestMode(false)}>{dict.formGuestBack}</button>
+        </p>
+      )}
 
       {active ? (
         <div className="plan-confirm">

@@ -92,6 +92,8 @@ export const DEFAULT_LABELS = {
   formActiveChange: "Message us on WhatsApp to change it",
   formLoginExpired: "That link expired. Enter your email again below.",
   formLoginError: "Something went wrong signing you in. Please try again.",
+  formGuestPrompt: "Prefer to send your details on WhatsApp instead?",
+  formGuestBack: "Sign in instead",
   bookOnBooking: "Book on Booking.com",
   bookOnBookingSub: "Check availability & prices",
   vrCard: "Virtual 360° tour",

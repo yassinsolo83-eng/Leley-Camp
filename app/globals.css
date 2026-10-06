@@ -381,6 +381,8 @@ a:hover .arrow-icon { transform: translateX(3px); }
 .form-note.success { background: #DCEFEA; color: #14504A; }
 .form-note.welcome { background: var(--sand); color: var(--deep-2); font-weight: 600; }
 .form-wa { display: inline-flex; align-items: center; gap: 8px; color: #14504A; font-weight: 600; margin-top: 6px; text-decoration: underline; }
+.form-link { background: none; border: none; padding: 0; font: inherit; color: var(--reef); text-decoration: underline; cursor: pointer; }
+.form-link:hover { color: var(--deep-2); }
 
 .link-rows { border-top: 1px solid var(--line); }
 .link-rows a { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 16px; border-bottom: 1px solid var(--line); border-inline-start: 4px solid var(--accent, var(--deep)); transition: background .2s; }
