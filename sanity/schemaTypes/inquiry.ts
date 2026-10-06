@@ -19,6 +19,12 @@ export const inquiry = defineType({
     defineField({ name: "status", title: "Status", type: "string", group: "handling", initialValue: "new",
       options: { list: STATUS, layout: "radio", direction: "horizontal" } }),
     defineField({ name: "notes", title: "Internal notes", type: "text", rows: 3, group: "handling" }),
+    // Who placed this request, from their signed-in session — not the free-text name/phone
+    // on the request itself, which the guest can still edit each time they book.
+    defineField({
+      name: "customer", title: "Customer", type: "reference", to: [{ type: "customer" }],
+      group: ["request", "handling"], readOnly: true,
+    }),
     ...[
       defineField({ name: "name", title: "Name", type: "string" }),
       defineField({ name: "phone", title: "Phone / WhatsApp", type: "string" }),

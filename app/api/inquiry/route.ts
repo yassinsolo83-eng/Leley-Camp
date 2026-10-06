@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import { client as readClient, writeClient } from "@/lib/sanity/client";
+import { sessionFromRequest } from "@/lib/auth";
+import { ACTIVE_STATUSES } from "@/lib/booking";
 
 const clip = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 const isDate = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v);
 
 export async function POST(request: Request) {
+  // Booking now requires being signed in (see /api/auth) — the customer the request
+  // belongs to comes from the session, never from the request body.
+  const session = sessionFromRequest(request);
+  if (!session) return NextResponse.json({ error: "not_signed_in" }, { status: 401 });
+
   let body: Record<string, unknown>;
   try {
     body = await request.json();
@@ -14,6 +21,26 @@ export async function POST(request: Request) {
 
   // Honeypot: real visitors never see or fill this field.
   if (clip(body.company, 100)) return NextResponse.json({ ok: true });
+
+  const client = writeClient();
+  if (!client) {
+    console.error("SANITY_API_WRITE_TOKEN is not set, so the booking request could not be saved.");
+    return NextResponse.json({ error: "not_configured" }, { status: 500 });
+  }
+
+  // One request in flight at a time per customer — a guest who wants to change
+  // something already-submitted is pointed at WhatsApp instead (see ReserveForm).
+  try {
+    const hasActive = await readClient.fetch<boolean>(
+      `count(*[_type == "inquiry" && customer._ref == $id && status in $statuses]) > 0`,
+      { id: session.customerId, statuses: ACTIVE_STATUSES },
+      { cache: "no-store" }
+    );
+    if (hasActive) return NextResponse.json({ error: "active_booking_exists" }, { status: 409 });
+  } catch (error) {
+    console.error("Could not check for an existing booking request:", error);
+    return NextResponse.json({ error: "save_failed" }, { status: 500 });
+  }
 
   // The guest's browser already checked the code live (see /api/promo), but that is
   // only a UX convenience — re-check here before trusting it. If it has gone stale
@@ -45,9 +72,10 @@ export async function POST(request: Request) {
   const doc = {
     _type: "inquiry",
     status: "new",
+    customer: { _type: "reference", _ref: session.customerId },
     name: clip(body.name, 100),
     phone: clip(body.phone, 30),
-    email: clip(body.email, 120),
+    email: session.email,
     checkIn: clip(body.checkIn, 10),
     checkOut: clip(body.checkOut, 10),
     guests: Math.min(Math.max(parseInt(String(body.guests), 10) || 0, 0), 50),
@@ -75,12 +103,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_dates" }, { status: 400 });
   }
 
-  const client = writeClient();
-  if (!client) {
-    console.error("SANITY_API_WRITE_TOKEN is not set, so the booking request could not be saved.");
-    return NextResponse.json({ error: "not_configured" }, { status: 500 });
-  }
-
   let createdId: string;
   try {
     const created = await client.create(doc);
@@ -98,45 +120,20 @@ export async function POST(request: Request) {
     });
   }
 
-  // Keep one customer record per phone number, so the admin can see a guest's full
-  // history and set a tier (New/Returning/VIP) by hand. The phone is always a clean
-  // international number by this point (picked from the country dropdown), so an exact
-  // match is reliable. Never allowed to fail the booking itself.
+  // Keep the customer record (created at sign-in) up to date: name/phone as given on
+  // this request, booking count, last-booking date, and a link to the new request.
+  // Never allowed to fail the booking itself.
   try {
-    const deviceToken = clip(body.deviceToken, 100);
-    type CustomerDoc = { _id: string; deviceTokens?: string[] };
-    const existing = await readClient.fetch<CustomerDoc | null>(
-      `*[_type == "customer" && phone == $phone][0]{ _id, deviceTokens }`,
-      { phone: doc.phone },
-      { cache: "no-store" }
-    );
-    if (existing) {
-      const setFields: Record<string, string> = { lastBookingAt: doc.submittedAt };
-      if (doc.name) setFields.name = doc.name;
-      if (doc.email) setFields.email = doc.email;
-      let patch = client
-        .patch(existing._id)
-        .setIfMissing({ bookingsCount: 0, inquiries: [], deviceTokens: [] })
-        .inc({ bookingsCount: 1 })
-        .set(setFields)
-        .append("inquiries", [{ _type: "reference", _ref: createdId, _key: createdId }]);
-      if (deviceToken && !(existing.deviceTokens || []).includes(deviceToken)) {
-        patch = patch.append("deviceTokens", [deviceToken]);
-      }
-      await patch.commit();
-    } else {
-      await client.create({
-        _type: "customer",
-        phone: doc.phone,
-        ...(doc.name && { name: doc.name }),
-        ...(doc.email && { email: doc.email }),
-        tier: "new",
-        bookingsCount: 1,
-        lastBookingAt: doc.submittedAt,
-        inquiries: [{ _type: "reference", _ref: createdId, _key: createdId }],
-        ...(deviceToken && { deviceTokens: [deviceToken] }),
-      });
-    }
+    const setFields: Record<string, string> = { lastBookingAt: doc.submittedAt };
+    if (doc.name) setFields.name = doc.name;
+    if (doc.phone) setFields.phone = doc.phone;
+    await client
+      .patch(session.customerId)
+      .setIfMissing({ bookingsCount: 0, inquiries: [] })
+      .inc({ bookingsCount: 1 })
+      .set(setFields)
+      .append("inquiries", [{ _type: "reference", _ref: createdId, _key: createdId }])
+      .commit();
   } catch (error) {
     console.error("Could not update the customer record (the booking itself was saved fine):", error);
   }

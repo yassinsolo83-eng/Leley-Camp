@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { formatNumber, whatsappLink, type Dictionary } from "@/lib/i18n";
 import type { Locale } from "@/lib/sanity/types";
 import { COUNTRIES, DEFAULT_COUNTRY, flagEmoji, splitPhone } from "@/lib/countries";
+import { guestStatusLabel } from "@/lib/booking";
 import { CHOOSE_PLAN_EVENT } from "./PricePlans";
 import { WhatsAppIcon } from "./icons";
 
@@ -18,18 +19,27 @@ type Props = {
 };
 
 type Fields = {
-  name: string; phone: string; phoneCountry: string; email: string; checkIn: string; checkOut: string;
+  name: string; phone: string; phoneCountry: string; checkIn: string; checkOut: string;
   guests: string; cabin: string; plan: string; message: string; company: string; promoCode: string;
 };
 
 type PromoResult = { discountType: string; value: number | null; currency: string | null; perkDescription: string | null };
 
+type ActiveBooking = {
+  status: string; checkIn: string; checkOut: string; guests: number;
+  plan?: string; cabin?: string; planPrice?: number; planCurrency?: string; planUnit?: string;
+};
+
+type Auth =
+  | { state: "checking" }
+  | { state: "out" }
+  | { state: "in"; email: string; name: string; phone: string; activeBooking: ActiveBooking | null };
+
 const EMPTY: Fields = {
-  name: "", phone: "", phoneCountry: DEFAULT_COUNTRY, email: "", checkIn: "", checkOut: "",
+  name: "", phone: "", phoneCountry: DEFAULT_COUNTRY, checkIn: "", checkOut: "",
   guests: "2", cabin: "", plan: "", message: "", company: "", promoCode: "",
 };
 const REQUIRED: (keyof Fields)[] = ["name", "phone", "checkIn", "checkOut", "guests"];
-const DEVICE_TOKEN_KEY = "leley_device_token";
 
 // The country code is explicit (picked, never guessed from the digits), so this
 // always comes out as one clean, unambiguous international number — no local "0"
@@ -45,6 +55,11 @@ function today() {
 }
 
 export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict }: Props) {
+  const [auth, setAuth] = useState<Auth>({ state: "checking" });
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginStatus, setLoginStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [loginNotice, setLoginNotice] = useState("");
+
   const [fields, setFields] = useState<Fields>(EMPTY);
   const [invalid, setInvalid] = useState<(keyof Fields)[]>([]);
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -53,55 +68,54 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
   const [promoStatus, setPromoStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
   const [promoResult, setPromoResult] = useState<PromoResult | null>(null);
   const [planJustChosen, setPlanJustChosen] = useState(false);
-  const [deviceToken, setDeviceToken] = useState("");
-  const [welcomeName, setWelcomeName] = useState("");
-  const [recognized, setRecognized] = useState(false);
 
-  // A random, meaningless token kept in this browser only — not a login, not tied to
-  // anything identifying the device itself. It's how a returning guest on the same
-  // browser gets greeted by name without typing anything. If recognize() finds a
-  // customer for it, the empty fields below are filled in for them.
+  // Who (if anyone) is signed in, and whether they already have a request in flight —
+  // booking requires signing in first, and only one active request per customer.
   useEffect(() => {
-    try {
-      let token = window.localStorage.getItem(DEVICE_TOKEN_KEY) || "";
-      if (!token) {
-        token = crypto.randomUUID();
-        window.localStorage.setItem(DEVICE_TOKEN_KEY, token);
-      }
-      setDeviceToken(token);
-      fetch("/api/customer/recognize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ deviceToken: token }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (!data?.found) return;
-          setRecognized(true);
-          if (data.name) setWelcomeName(data.name);
-          setFields((f) => {
-            if (f.name || f.phone) return f; // guest already typed something — don't overwrite
-            const { dial, local } = data.phone ? splitPhone(data.phone) : { dial: f.phoneCountry, local: "" };
-            return { ...f, name: data.name || f.name, phoneCountry: dial || f.phoneCountry, phone: local || f.phone, email: data.email || f.email };
-          });
-        })
-        .catch(() => {});
-    } catch {
-      // localStorage can be unavailable (private mode, etc.) — recognition just skips.
-    }
-  }, []);
-
-  // When a guest who wasn't device-recognized finishes typing their phone number, a
-  // name-only lookup (see app/api/customer/lookup) fills in Name if it's still empty —
-  // a light touch for a returning guest on a new browser, with nothing else revealed.
-  function onPhoneBlur() {
-    if (recognized || fields.name.trim() || !fields.phone.trim()) return;
-    fetch(`/api/customer/lookup?phone=${encodeURIComponent(fullPhone(fields))}`)
+    const params = new URLSearchParams(window.location.search);
+    fetch("/api/auth/me")
       .then((res) => res.json())
       .then((data) => {
-        if (data?.found && data.name) setFields((f) => (f.name.trim() ? f : { ...f, name: data.name }));
+        if (!data?.loggedIn) {
+          setAuth({ state: "out" });
+          if (params.get("login") === "expired") setLoginNotice(dict.formLoginExpired);
+          if (params.get("login") === "error") setLoginNotice(dict.formLoginError);
+          return;
+        }
+        setAuth({ state: "in", email: data.email, name: data.name || "", phone: data.phone || "", activeBooking: data.activeBooking || null });
+        if (data.name || data.phone) {
+          const { dial, local } = data.phone ? splitPhone(data.phone) : { dial: DEFAULT_COUNTRY, local: "" };
+          setFields((f) => ({ ...f, name: data.name || f.name, phoneCountry: dial, phone: local || f.phone }));
+        }
       })
-      .catch(() => {});
+      .catch(() => setAuth({ state: "out" }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function sendLoginLink(e: React.FormEvent) {
+    e.preventDefault();
+    if (!loginEmail.trim()) return;
+    setLoginStatus("sending");
+    try {
+      const res = await fetch("/api/auth/request-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: loginEmail.trim(), lang }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      setLoginStatus("sent");
+    } catch {
+      setLoginStatus("error");
+    }
+  }
+
+  async function signOut() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      setAuth({ state: "out" });
+      setFields(EMPTY);
+    }
   }
 
   // Checks the promo code against /api/promo a moment after the guest stops typing.
@@ -236,14 +250,26 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
           planPrice: selectedPlan?.price,
           planCurrency: selectedPlan?.currency,
           planUnit: selectedPlan?.unit,
-          deviceToken,
           language: lang,
         }),
       });
+      if (res.status === 401) {
+        setAuth({ state: "out" });
+        setStatus("idle");
+        setLoginNotice(dict.formLoginExpired);
+        return;
+      }
+      if (res.status === 409) {
+        setStatus("idle");
+        fetch("/api/auth/me").then((r) => r.json()).then((data) => {
+          if (data?.loggedIn) setAuth({ state: "in", email: data.email, name: data.name || "", phone: data.phone || "", activeBooking: data.activeBooking || null });
+        });
+        return;
+      }
       if (!res.ok) throw new Error(String(res.status));
       setSentSummary(summary(fields));
       setStatus("sent");
-      setFields(EMPTY);
+      setFields((f) => ({ ...EMPTY, phoneCountry: f.phoneCountry }));
     } catch {
       setStatus("error");
       setError(dict.formError);
@@ -257,125 +283,175 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
     setPlanJustChosen(false);
   };
 
+  if (auth.state === "checking") return null;
+
+  // Not signed in: all the form asks for is an email to send a sign-in link to.
+  if (auth.state === "out") {
+    return (
+      <form className="reserve-form" onSubmit={sendLoginLink} noValidate>
+        <div className="field full">
+          <label htmlFor="r-login-email">{dict.formSignInHeading}</label>
+          <p className="field-hint">{dict.formSignInBody}</p>
+          <input
+            id="r-login-email" type="email" dir="ltr" autoComplete="email" required
+            value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} maxLength={150}
+          />
+        </div>
+        {loginNotice && loginStatus === "idle" && <p className="form-note error" role="alert">{loginNotice}</p>}
+        {loginStatus === "sent" && <p className="form-note success" role="status">{dict.formSignInSent}</p>}
+        {loginStatus === "error" && <p className="form-note error" role="alert">{dict.formSignInError}</p>}
+        <div className="form-actions">
+          <button className="btn btn-red form-submit" type="submit" disabled={loginStatus === "sending" || loginStatus === "sent"}>
+            {loginStatus === "sending" ? dict.formSignInSending : dict.formSignInSubmit}
+          </button>
+        </div>
+      </form>
+    );
+  }
+
+  const active = auth.activeBooking;
+
   return (
-          <form className="reserve-form" onSubmit={submit} noValidate>
-            {recognized && welcomeName && (
-              <p className="form-note welcome">{dict.formWelcomeBack.replace("{name}", welcomeName)}</p>
-            )}
-            {selectedPlan && (
-              <div className={`plan-confirm${planJustChosen ? " pulse" : ""}`}>
-                <div>
-                  <p className="plan-confirm-label">{dict.formPlanSelected}</p>
-                  <p className="plan-confirm-name">{selectedPlan.label}</p>
-                  {typeof selectedPlan.price === "number" && (
-                    <p className="plan-confirm-price">
-                      {formatNumber(selectedPlan.price)} {selectedPlan.currency} {selectedPlan.unit}
-                    </p>
-                  )}
-                </div>
-                <button type="button" className="plan-confirm-clear" onClick={clearPlan}>
-                  {dict.formPlanClear}
-                </button>
-              </div>
-            )}
-            <div className={cls("name", true)}>
-              <label htmlFor="r-name">{dict.formName}</label>
-              <input id="r-name" autoComplete="name" value={fields.name} onChange={set("name")} required maxLength={100} />
-            </div>
-            <div className={cls("phone")}>
-              <label htmlFor="r-phone">{dict.formPhone}</label>
-              <div className="phone-field" dir="ltr">
-                <select
-                  aria-label={dict.formPhoneCountry} value={fields.phoneCountry}
-                  onChange={(e) => setFields((f) => ({ ...f, phoneCountry: e.target.value }))}
-                >
-                  {COUNTRIES.map((c) => (
-                    <option key={c.iso} value={c.dial}>
-                      {flagEmoji(c.iso)} {c.dial} {c.name}
-                    </option>
-                  ))}
-                </select>
-                <input id="r-phone" type="tel" dir="ltr" autoComplete="tel" inputMode="numeric" value={fields.phone} onChange={set("phone")} onBlur={onPhoneBlur} required maxLength={14} />
-              </div>
-            </div>
-            <div className={cls("email")}>
-              <label htmlFor="r-email">{dict.formEmail}</label>
-              <input id="r-email" type="email" dir="ltr" autoComplete="email" value={fields.email} onChange={set("email")} maxLength={120} />
-            </div>
-            <div className={cls("checkIn")}>
-              <label htmlFor="r-in">{dict.formCheckIn}</label>
-              <input id="r-in" type="date" min={today()} value={fields.checkIn} onChange={set("checkIn")} required />
-            </div>
-            <div className={cls("checkOut")}>
-              <label htmlFor="r-out">{dict.formCheckOut}</label>
-              <input id="r-out" type="date" min={fields.checkIn || today()} value={fields.checkOut} onChange={set("checkOut")} required />
-            </div>
-            <div className={cls("guests")}>
-              <label htmlFor="r-guests">{dict.formGuests}</label>
-              <input
-                id="r-guests" type="number" inputMode="numeric" min={1} max={50}
-                value={fields.guests} onChange={set("guests")} required
-                disabled={!!selectedPlan?.guestsIncluded}
-              />
-              {!!selectedPlan?.guestsIncluded && <span className="field-hint checking">{dict.formGuestsFixed}</span>}
-            </div>
-            {cabins.length > 0 && (
-              <div className={cls("cabin")}>
-                <label htmlFor="r-cabin">{dict.formCabin}</label>
-                <select id="r-cabin" value={fields.cabin} onChange={set("cabin")}>
-                  <option value="">{dict.formAnyCabin}</option>
-                  {cabins.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                </select>
-              </div>
-            )}
-            {plans.length > 0 && (
-              <div className={cls("plan", true)}>
-                <label htmlFor="r-plan">{dict.formPlan}</label>
-                <select id="r-plan" value={fields.plan} onChange={(e) => applyPlan(e.target.value)}>
-                  <option value="">{dict.formNoPlan}</option>
-                  {plans.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
-                </select>
-              </div>
-            )}
-            <div className={cls("promoCode", true)}>
-              <label htmlFor="r-promo">{dict.formPromoCode}</label>
-              <input id="r-promo" dir="ltr" autoComplete="off" value={fields.promoCode} onChange={set("promoCode")} maxLength={40} />
-              {promoStatus === "checking" && <span className="field-hint checking">{dict.formPromoChecking}</span>}
-              {promoStatus === "valid" && promoResult && <span className="field-hint ok">{promoText(promoResult)}</span>}
-              {promoStatus === "invalid" && <span className="field-hint bad">{dict.formPromoInvalid}</span>}
-            </div>
+    <form className="reserve-form" onSubmit={submit} noValidate>
+      <p className="form-note welcome signed-in-as">
+        {dict.formSignedInAs} {auth.email}
+        {" · "}
+        <button type="button" className="plan-confirm-clear" onClick={signOut}>{dict.formSignOut}</button>
+      </p>
 
-            <div className={cls("message", true)}>
-              <label htmlFor="r-message">{dict.formMessage}</label>
-              <textarea id="r-message" value={fields.message} onChange={set("message")} maxLength={1500} />
-            </div>
-
-            {/* Left empty by people; bots fill it in. */}
-            <div className="hp-field" aria-hidden="true">
-              <label htmlFor="r-company">Company</label>
-              <input id="r-company" tabIndex={-1} autoComplete="off" value={fields.company} onChange={set("company")} />
-            </div>
-
-            {status === "error" && error && <p className="form-note error" role="alert">{error}</p>}
-            {status === "sent" && (
-              <p className="form-note success" role="status">
-                {dict.formSuccess}
-                {wa && (
-                  <>
-                    <br />
-                    <a className="form-wa" href={wa} target="_blank" rel="noopener noreferrer">
-                      <WhatsAppIcon size={15} color="#25D366" /> {dict.formAlsoWhatsapp}
-                    </a>
-                  </>
+      {active ? (
+        <div className="plan-confirm">
+          <div>
+            <p className="plan-confirm-label">{dict.formActiveHeading}</p>
+            <p className="plan-confirm-name">
+              {active.checkIn} → {active.checkOut} · {active.guests} {dict.formGuests.toLowerCase()}
+            </p>
+            {active.plan && <p className="plan-confirm-price">{active.plan}</p>}
+            <p className="field-hint ok">{dict.formActiveStatus}: {guestStatusLabel(active.status, lang)}</p>
+          </div>
+          {whatsappNumber && (
+            <a
+              className="btn btn-red form-submit" href={whatsappLink(whatsappNumber, summary({ ...fields, checkIn: active.checkIn, checkOut: active.checkOut, guests: String(active.guests) }))}
+              target="_blank" rel="noopener noreferrer"
+            >
+              <WhatsAppIcon size={15} color="#fff" /> {dict.formActiveChange}
+            </a>
+          )}
+        </div>
+      ) : (
+        <>
+          {selectedPlan && (
+            <div className={`plan-confirm${planJustChosen ? " pulse" : ""}`}>
+              <div>
+                <p className="plan-confirm-label">{dict.formPlanSelected}</p>
+                <p className="plan-confirm-name">{selectedPlan.label}</p>
+                {typeof selectedPlan.price === "number" && (
+                  <p className="plan-confirm-price">
+                    {formatNumber(selectedPlan.price)} {selectedPlan.currency} {selectedPlan.unit}
+                  </p>
                 )}
-              </p>
-            )}
-
-            <div className="form-actions">
-              <button className="btn btn-red form-submit" type="submit" disabled={status === "sending"}>
-                {status === "sending" ? dict.formSending : dict.formSubmit}
+              </div>
+              <button type="button" className="plan-confirm-clear" onClick={clearPlan}>
+                {dict.formPlanClear}
               </button>
             </div>
-          </form>
+          )}
+          <div className={cls("name", true)}>
+            <label htmlFor="r-name">{dict.formName}</label>
+            <input id="r-name" autoComplete="name" value={fields.name} onChange={set("name")} required maxLength={100} />
+          </div>
+          <div className={cls("phone")}>
+            <label htmlFor="r-phone">{dict.formPhone}</label>
+            <div className="phone-field" dir="ltr">
+              <select
+                aria-label={dict.formPhoneCountry} value={fields.phoneCountry}
+                onChange={(e) => setFields((f) => ({ ...f, phoneCountry: e.target.value }))}
+              >
+                {COUNTRIES.map((c) => (
+                  <option key={c.iso} value={c.dial}>
+                    {flagEmoji(c.iso)} {c.dial} {c.name}
+                  </option>
+                ))}
+              </select>
+              <input id="r-phone" type="tel" dir="ltr" autoComplete="tel" inputMode="numeric" value={fields.phone} onChange={set("phone")} required maxLength={14} />
+            </div>
+          </div>
+          <div className={cls("checkIn")}>
+            <label htmlFor="r-in">{dict.formCheckIn}</label>
+            <input id="r-in" type="date" min={today()} value={fields.checkIn} onChange={set("checkIn")} required />
+          </div>
+          <div className={cls("checkOut")}>
+            <label htmlFor="r-out">{dict.formCheckOut}</label>
+            <input id="r-out" type="date" min={fields.checkIn || today()} value={fields.checkOut} onChange={set("checkOut")} required />
+          </div>
+          <div className={cls("guests")}>
+            <label htmlFor="r-guests">{dict.formGuests}</label>
+            <input
+              id="r-guests" type="number" inputMode="numeric" min={1} max={50}
+              value={fields.guests} onChange={set("guests")} required
+              disabled={!!selectedPlan?.guestsIncluded}
+            />
+            {!!selectedPlan?.guestsIncluded && <span className="field-hint checking">{dict.formGuestsFixed}</span>}
+          </div>
+          {cabins.length > 0 && (
+            <div className={cls("cabin")}>
+              <label htmlFor="r-cabin">{dict.formCabin}</label>
+              <select id="r-cabin" value={fields.cabin} onChange={set("cabin")}>
+                <option value="">{dict.formAnyCabin}</option>
+                {cabins.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+              </select>
+            </div>
+          )}
+          {plans.length > 0 && (
+            <div className={cls("plan", true)}>
+              <label htmlFor="r-plan">{dict.formPlan}</label>
+              <select id="r-plan" value={fields.plan} onChange={(e) => applyPlan(e.target.value)}>
+                <option value="">{dict.formNoPlan}</option>
+                {plans.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+              </select>
+            </div>
+          )}
+          <div className={cls("promoCode", true)}>
+            <label htmlFor="r-promo">{dict.formPromoCode}</label>
+            <input id="r-promo" dir="ltr" autoComplete="off" value={fields.promoCode} onChange={set("promoCode")} maxLength={40} />
+            {promoStatus === "checking" && <span className="field-hint checking">{dict.formPromoChecking}</span>}
+            {promoStatus === "valid" && promoResult && <span className="field-hint ok">{promoText(promoResult)}</span>}
+            {promoStatus === "invalid" && <span className="field-hint bad">{dict.formPromoInvalid}</span>}
+          </div>
+
+          <div className={cls("message", true)}>
+            <label htmlFor="r-message">{dict.formMessage}</label>
+            <textarea id="r-message" value={fields.message} onChange={set("message")} maxLength={1500} />
+          </div>
+
+          {/* Left empty by people; bots fill it in. */}
+          <div className="hp-field" aria-hidden="true">
+            <label htmlFor="r-company">Company</label>
+            <input id="r-company" tabIndex={-1} autoComplete="off" value={fields.company} onChange={set("company")} />
+          </div>
+
+          {status === "error" && error && <p className="form-note error" role="alert">{error}</p>}
+          {status === "sent" && (
+            <p className="form-note success" role="status">
+              {dict.formSuccess}
+              {wa && (
+                <>
+                  <br />
+                  <a className="form-wa" href={wa} target="_blank" rel="noopener noreferrer">
+                    <WhatsAppIcon size={15} color="#25D366" /> {dict.formAlsoWhatsapp}
+                  </a>
+                </>
+              )}
+            </p>
+          )}
+
+          <div className="form-actions">
+            <button className="btn btn-red form-submit" type="submit" disabled={status === "sending"}>
+              {status === "sending" ? dict.formSending : dict.formSubmit}
+            </button>
+          </div>
+        </>
+      )}
+    </form>
   );
 }
