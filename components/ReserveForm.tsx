@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { formatNumber, whatsappLink, type Dictionary } from "@/lib/i18n";
 import type { Locale } from "@/lib/sanity/types";
+import { COUNTRIES, DEFAULT_COUNTRY, flagEmoji, splitPhone } from "@/lib/countries";
 import { CHOOSE_PLAN_EVENT } from "./PricePlans";
 import { WhatsAppIcon } from "./icons";
 
@@ -17,14 +18,25 @@ type Props = {
 };
 
 type Fields = {
-  name: string; phone: string; email: string; checkIn: string; checkOut: string;
+  name: string; phone: string; phoneCountry: string; email: string; checkIn: string; checkOut: string;
   guests: string; cabin: string; plan: string; message: string; company: string; promoCode: string;
 };
 
 type PromoResult = { discountType: string; value: number | null; currency: string | null; perkDescription: string | null };
 
-const EMPTY: Fields = { name: "", phone: "", email: "", checkIn: "", checkOut: "", guests: "2", cabin: "", plan: "", message: "", company: "", promoCode: "" };
+const EMPTY: Fields = {
+  name: "", phone: "", phoneCountry: DEFAULT_COUNTRY, email: "", checkIn: "", checkOut: "",
+  guests: "2", cabin: "", plan: "", message: "", company: "", promoCode: "",
+};
 const REQUIRED: (keyof Fields)[] = ["name", "phone", "checkIn", "checkOut", "guests"];
+const DEVICE_TOKEN_KEY = "leley_device_token";
+
+// The country code is explicit (picked, never guessed from the digits), so this
+// always comes out as one clean, unambiguous international number — no local "0"
+// trunk prefix left over from habit, no heuristics needed to match it up later.
+function fullPhone(f: Fields) {
+  return `${f.phoneCountry}${f.phone.replace(/^0+/, "")}`;
+}
 
 function today() {
   const d = new Date();
@@ -41,6 +53,56 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
   const [promoStatus, setPromoStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
   const [promoResult, setPromoResult] = useState<PromoResult | null>(null);
   const [planJustChosen, setPlanJustChosen] = useState(false);
+  const [deviceToken, setDeviceToken] = useState("");
+  const [welcomeName, setWelcomeName] = useState("");
+  const [recognized, setRecognized] = useState(false);
+
+  // A random, meaningless token kept in this browser only — not a login, not tied to
+  // anything identifying the device itself. It's how a returning guest on the same
+  // browser gets greeted by name without typing anything. If recognize() finds a
+  // customer for it, the empty fields below are filled in for them.
+  useEffect(() => {
+    try {
+      let token = window.localStorage.getItem(DEVICE_TOKEN_KEY) || "";
+      if (!token) {
+        token = crypto.randomUUID();
+        window.localStorage.setItem(DEVICE_TOKEN_KEY, token);
+      }
+      setDeviceToken(token);
+      fetch("/api/customer/recognize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deviceToken: token }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (!data?.found) return;
+          setRecognized(true);
+          if (data.name) setWelcomeName(data.name);
+          setFields((f) => {
+            if (f.name || f.phone) return f; // guest already typed something — don't overwrite
+            const { dial, local } = data.phone ? splitPhone(data.phone) : { dial: f.phoneCountry, local: "" };
+            return { ...f, name: data.name || f.name, phoneCountry: dial || f.phoneCountry, phone: local || f.phone, email: data.email || f.email };
+          });
+        })
+        .catch(() => {});
+    } catch {
+      // localStorage can be unavailable (private mode, etc.) — recognition just skips.
+    }
+  }, []);
+
+  // When a guest who wasn't device-recognized finishes typing their phone number, a
+  // name-only lookup (see app/api/customer/lookup) fills in Name if it's still empty —
+  // a light touch for a returning guest on a new browser, with nothing else revealed.
+  function onPhoneBlur() {
+    if (recognized || fields.name.trim() || !fields.phone.trim()) return;
+    fetch(`/api/customer/lookup?phone=${encodeURIComponent(fullPhone(fields))}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.found && data.name) setFields((f) => (f.name.trim() ? f : { ...f, name: data.name }));
+      })
+      .catch(() => {});
+  }
 
   // Checks the promo code against /api/promo a moment after the guest stops typing.
   // The reason/source behind the discount are never sent to the browser — only the
@@ -135,7 +197,7 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
     const label = (list: Option[], value: string) => list.find((o) => o.value === value)?.label || value;
     return [
       `${dict.formName}: ${f.name}`,
-      `${dict.formPhone}: ${f.phone}`,
+      `${dict.formPhone}: ${fullPhone(f)}`,
       `${dict.formCheckIn}: ${f.checkIn}`,
       `${dict.formCheckOut}: ${f.checkOut}`,
       `${dict.formGuests}: ${f.guests}`,
@@ -170,9 +232,11 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...fields,
+          phone: fullPhone(fields),
           planPrice: selectedPlan?.price,
           planCurrency: selectedPlan?.currency,
           planUnit: selectedPlan?.unit,
+          deviceToken,
           language: lang,
         }),
       });
@@ -195,6 +259,9 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
 
   return (
           <form className="reserve-form" onSubmit={submit} noValidate>
+            {recognized && welcomeName && (
+              <p className="form-note welcome">{dict.formWelcomeBack.replace("{name}", welcomeName)}</p>
+            )}
             {selectedPlan && (
               <div className={`plan-confirm${planJustChosen ? " pulse" : ""}`}>
                 <div>
@@ -217,7 +284,19 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
             </div>
             <div className={cls("phone")}>
               <label htmlFor="r-phone">{dict.formPhone}</label>
-              <input id="r-phone" type="tel" dir="ltr" autoComplete="tel" value={fields.phone} onChange={set("phone")} required maxLength={30} />
+              <div className="phone-field" dir="ltr">
+                <select
+                  aria-label={dict.formPhoneCountry} value={fields.phoneCountry}
+                  onChange={(e) => setFields((f) => ({ ...f, phoneCountry: e.target.value }))}
+                >
+                  {COUNTRIES.map((c) => (
+                    <option key={c.iso} value={c.dial}>
+                      {flagEmoji(c.iso)} {c.dial} {c.name}
+                    </option>
+                  ))}
+                </select>
+                <input id="r-phone" type="tel" dir="ltr" autoComplete="tel" inputMode="numeric" value={fields.phone} onChange={set("phone")} onBlur={onPhoneBlur} required maxLength={14} />
+              </div>
             </div>
             <div className={cls("email")}>
               <label htmlFor="r-email">{dict.formEmail}</label>

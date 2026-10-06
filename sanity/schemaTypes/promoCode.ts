@@ -76,6 +76,13 @@ export const promoCode = defineType({
       description: 'Who this is attributed to — a person\'s name, or "Solo Retreats". Internal only.',
     }),
     defineField({
+      name: "customer",
+      title: "For this customer",
+      type: "reference",
+      to: [{ type: "customer" }],
+      description: "Optional. Tie this code to one specific customer, e.g. a personal offer for a returning or VIP guest.",
+    }),
+    defineField({
       name: "expiresAt",
       title: "Expires on",
       type: "date",

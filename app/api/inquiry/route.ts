@@ -81,8 +81,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "not_configured" }, { status: 500 });
   }
 
+  let createdId: string;
   try {
-    await client.create(doc);
+    const created = await client.create(doc);
+    createdId = created._id;
   } catch (error) {
     console.error("Saving the booking request failed:", error);
     return NextResponse.json({ error: "save_failed" }, { status: 500 });
@@ -94,6 +96,49 @@ export async function POST(request: Request) {
     client.patch(promo._id).setIfMissing({ timesUsed: 0 }).inc({ timesUsed: 1 }).commit().catch((error) => {
       console.error("Could not update the promo code's usage counter:", error);
     });
+  }
+
+  // Keep one customer record per phone number, so the admin can see a guest's full
+  // history and set a tier (New/Returning/VIP) by hand. The phone is always a clean
+  // international number by this point (picked from the country dropdown), so an exact
+  // match is reliable. Never allowed to fail the booking itself.
+  try {
+    const deviceToken = clip(body.deviceToken, 100);
+    type CustomerDoc = { _id: string; deviceTokens?: string[] };
+    const existing = await readClient.fetch<CustomerDoc | null>(
+      `*[_type == "customer" && phone == $phone][0]{ _id, deviceTokens }`,
+      { phone: doc.phone },
+      { cache: "no-store" }
+    );
+    if (existing) {
+      const setFields: Record<string, string> = { lastBookingAt: doc.submittedAt };
+      if (doc.name) setFields.name = doc.name;
+      if (doc.email) setFields.email = doc.email;
+      let patch = client
+        .patch(existing._id)
+        .setIfMissing({ bookingsCount: 0, inquiries: [], deviceTokens: [] })
+        .inc({ bookingsCount: 1 })
+        .set(setFields)
+        .append("inquiries", [{ _type: "reference", _ref: createdId, _key: createdId }]);
+      if (deviceToken && !(existing.deviceTokens || []).includes(deviceToken)) {
+        patch = patch.append("deviceTokens", [deviceToken]);
+      }
+      await patch.commit();
+    } else {
+      await client.create({
+        _type: "customer",
+        phone: doc.phone,
+        ...(doc.name && { name: doc.name }),
+        ...(doc.email && { email: doc.email }),
+        tier: "new",
+        bookingsCount: 1,
+        lastBookingAt: doc.submittedAt,
+        inquiries: [{ _type: "reference", _ref: createdId, _key: createdId }],
+        ...(deviceToken && { deviceTokens: [deviceToken] }),
+      });
+    }
+  } catch (error) {
+    console.error("Could not update the customer record (the booking itself was saved fine):", error);
   }
 
   return NextResponse.json({ ok: true });

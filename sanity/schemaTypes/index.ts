@@ -6,12 +6,13 @@ import { interfaceText } from "./interfaceText";
 import { cabin, activity, pricePlan, review } from "./content";
 import { inquiry } from "./inquiry";
 import { promoCode } from "./promoCode";
+import { customer } from "./customer";
 import { visitorCounter } from "./visitorCounter";
 
 export const schemaTypes = [
   localeString, localeText, sectionHeading, pageHeader,
   siteSettings, homePage, pages, interfaceText, visitorCounter,
-  cabin, activity, pricePlan, review, inquiry, promoCode,
+  cabin, activity, pricePlan, review, inquiry, promoCode, customer,
 ];
 
 export const SINGLETONS = ["siteSettings", "homePage", "pages", "interfaceText", "visitorCounter"];
