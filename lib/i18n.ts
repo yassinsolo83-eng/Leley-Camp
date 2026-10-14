@@ -114,6 +114,9 @@ export const DEFAULT_LABELS = {
   skipToContent: "Skip to content",
   notFound: "This page doesn't exist.",
   backHome: "Back to home",
+  navPrivacy: "Privacy Policy",
+  navTerms: "Terms & Conditions",
+  legalUpdated: "Last updated",
 };
 
 export type LabelKey = keyof typeof DEFAULT_LABELS;

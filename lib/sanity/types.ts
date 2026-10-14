@@ -101,10 +101,21 @@ export type Review = {
 
 export type Labels = Record<string, Localized>;
 
+export type LegalSection = { _key: string; heading?: Localized; body?: Localized };
+export type LegalPages = {
+  privacyTitle?: Localized;
+  privacyUpdatedAt?: string;
+  privacySections?: LegalSection[];
+  termsTitle?: Localized;
+  termsUpdatedAt?: string;
+  termsSections?: LegalSection[];
+};
+
 export type PageData = {
   settings: SiteSettings | null;
   home: HomePage | null;
   pages: Pages | null;
+  legal: LegalPages | null;
   labels: Labels | null;
   cabins: Cabin[];
   activities: Activity[];

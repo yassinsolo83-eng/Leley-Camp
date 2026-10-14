@@ -13,6 +13,7 @@ export const getPageData = cache(async (): Promise<PageData> => {
     settings: data?.settings ?? null,
     home: data?.home ?? null,
     pages: data?.pages ?? null,
+    legal: data?.legal ?? null,
     labels: data?.labels ?? null,
     cabins: data?.cabins ?? [],
     activities: data?.activities ?? [],

@@ -7,12 +7,13 @@ import { cabin, activity, pricePlan, review } from "./content";
 import { inquiry } from "./inquiry";
 import { promoCode } from "./promoCode";
 import { customer } from "./customer";
+import { legalSection, legalPages } from "./legal";
 import { visitorCounter } from "./visitorCounter";
 
 export const schemaTypes = [
-  localeString, localeText, sectionHeading, pageHeader,
-  siteSettings, homePage, pages, interfaceText, visitorCounter,
+  localeString, localeText, sectionHeading, pageHeader, legalSection,
+  siteSettings, homePage, pages, legalPages, interfaceText, visitorCounter,
   cabin, activity, pricePlan, review, inquiry, promoCode, customer,
 ];
 
-export const SINGLETONS = ["siteSettings", "homePage", "pages", "interfaceText", "visitorCounter"];
+export const SINGLETONS = ["siteSettings", "homePage", "pages", "legalPages", "interfaceText", "visitorCounter"];

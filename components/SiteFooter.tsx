@@ -40,6 +40,10 @@ export default function SiteFooter({ ctx, nav }: { ctx: PageContext; nav: NavIte
       </div>
       <div className="container footer-bottom">
         <p>© {new Date().getFullYear()} {ctx.campName}. {dict.allRights}</p>
+        <ul className="footer-legal">
+          <li><Link href={`/${lang}/privacy`}>{dict.navPrivacy}</Link></li>
+          <li><Link href={`/${lang}/terms`}>{dict.navTerms}</Link></li>
+        </ul>
         <VisitorCounter label={dict.visitors} />
       </div>
     </footer>

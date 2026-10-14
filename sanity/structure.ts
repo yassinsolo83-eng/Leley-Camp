@@ -33,6 +33,7 @@ export const structure: StructureResolver = (S) =>
       S.divider(),
       singleton(S, "homePage", "Home page"),
       singleton(S, "pages", "Other pages"),
+      singleton(S, "legalPages", "Privacy & Terms"),
       orderedList(S, "cabin", "Cabins"),
       orderedList(S, "pricePlan", "Prices"),
       orderedList(S, "activity", "Activities"),
