@@ -1,3 +1,4 @@
+import { BulkImageInput } from "../components/BulkImageInput";
 import { defineArrayMember, defineField, defineType } from "sanity";
 
 const heading = (name: string, title: string, group: string) =>
@@ -53,7 +54,7 @@ export const homePage = defineType({
       defineField({ name: "subtitle", title: "Subtitle", type: "localeText" }),
     ]}),
 
-    defineField({ name: "gallery", title: "Gallery photos", type: "array", group: "media",
+    defineField({ name: "gallery", title: "Gallery photos", type: "array", group: "media", components: { input: BulkImageInput },
       description: "Shown on the Gallery page. Drag to reorder. Wide photos take two columns.",
       of: [defineArrayMember({
         type: "object",
