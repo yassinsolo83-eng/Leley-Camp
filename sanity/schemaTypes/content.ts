@@ -1,3 +1,4 @@
+import { BulkImageInput } from "../components/BulkImageInput";
 import { defineArrayMember, defineField, defineType } from "sanity";
 
 const order = defineField({ name: "order", title: "Order on the page", type: "number", description: "Lower numbers show first.", initialValue: 10 });
@@ -17,7 +18,7 @@ export const cabin = defineType({
     defineField({ name: "details", title: "Full description", type: "array", of: [defineArrayMember({ type: "localeText" })],
       description: "Paragraphs shown on the cabin's own page." }),
     defineField({ name: "amenities", title: "What's inside", type: "array", of: [defineArrayMember({ type: "localeString" })] }),
-    defineField({ name: "photos", title: "More photos", type: "array", of: [defineArrayMember({ type: "image", options: { hotspot: true } })] }),
+    defineField({ name: "photos", title: "More photos", type: "array", components: { input: BulkImageInput }, of: [defineArrayMember({ type: "image", options: { hotspot: true } })] }),
     order,
   ],
   preview: { select: { title: "name.en", subtitle: "tag.en", media: "image" } },
