@@ -2,7 +2,11 @@ import { groq } from "next-sanity";
 
 export const pageQuery = groq`{
   "settings": *[_id == "siteSettings"][0],
-  "home": *[_id == "homePage"][0]{ ..., "videoUrl": video.asset->url },
+  "home": *[_id == "homePage"][0]{
+    ...,
+    "videoUrl": video.asset->url,
+    gallery[]{ ..., "videoUrl": video.asset->url }
+  },
   "pages": *[_id == "pages"][0],
   "legal": *[_id == "legalPages"][0],
   "labels": *[_id == "interfaceText"][0],
