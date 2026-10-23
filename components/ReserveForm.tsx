@@ -453,6 +453,11 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict,
                 lang={lang}
                 dict={dict}
               />
+              {fields.checkIn && fields.checkOut && fields.checkOut > fields.checkIn && (
+                overlapsBlocked(fields.checkIn, fields.checkOut, cabins.find((c) => c.value === fields.cabin)?.blockedDates)
+                  ? <p className="field-hint bad">{dict.formUnavailable}</p>
+                  : <p className="field-hint ok">{dict.formAvailable}</p>
+              )}
             </div>
           )}
           {plans.length > 0 && (
