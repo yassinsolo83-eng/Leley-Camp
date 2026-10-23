@@ -1,4 +1,6 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
+import { STANDARD_AMENITIES } from "../../lib/amenities";
+import { DEFAULT_LABELS } from "../../lib/i18n";
 
 const order = defineField({ name: "order", title: "Order on the page", type: "number", description: "Lower numbers show first.", initialValue: 10 });
 
@@ -16,7 +18,14 @@ export const cabin = defineType({
     defineField({ name: "image", title: "Main photo", type: "image", options: { hotspot: true } }),
     defineField({ name: "details", title: "Full description", type: "array", of: [defineArrayMember({ type: "localeText" })],
       description: "Paragraphs shown on the cabin's own page." }),
-    defineField({ name: "amenities", title: "What's inside", type: "array", of: [defineArrayMember({ type: "localeString" })] }),
+    defineField({
+      name: "standardAmenities", title: "What's inside (tick the ones that apply)", type: "array",
+      of: [defineArrayMember({ type: "string" })],
+      options: { list: STANDARD_AMENITIES.map((a) => ({ title: DEFAULT_LABELS[a.labelKey], value: a.value })) },
+      description: "These stay the same across cabins — just tick what this cabin has. For anything else, use the field below.",
+    }),
+    defineField({ name: "amenities", title: "Other amenities", type: "array", of: [defineArrayMember({ type: "localeString" })],
+      description: "Anything specific to this cabin that isn't in the tick list above." }),
     defineField({ name: "photos", title: "More photos", type: "array", of: [defineArrayMember({ type: "image", options: { hotspot: true } })] }),
     order,
   ],
