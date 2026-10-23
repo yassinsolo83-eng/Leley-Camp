@@ -81,6 +81,7 @@ export const DEFAULT_LABELS = {
   formMissing: "Please fill in your name, phone, dates and number of guests.",
   formDates: "Check-out must be after check-in.",
   formUnavailable: "This cabin is already booked for part of those dates. Pick different dates or another cabin.",
+  formAvailable: "These dates are available for this cabin.",
   availabilityTitle: "Availability",
   availabilityBooked: "Booked",
   availabilityPrevMonth: "Previous month",
