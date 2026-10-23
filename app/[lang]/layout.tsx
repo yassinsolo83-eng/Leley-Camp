@@ -31,23 +31,25 @@ export default async function LangLayout({ children, params }: LayoutProps<"/[la
         {/* The first home-page view of each session plays the intro overlay (components/IntroWeave.tsx),
             where the rug weaves in and the panel lifts to reveal the hero. */}
         <a className="skip-link" href="#main">{ctx.dict.skipToContent}</a>
-        <TopBar
-          facebookUrl={ctx.settings?.facebookUrl}
-          instagramUrl={ctx.settings?.instagramUrl}
-          phoneDisplay={ctx.settings?.phoneDisplay}
-        />
-        <SiteHeader
-          lang={lang}
-          campName={ctx.campName}
-          logoUrl={ctx.logoUrl}
-          nav={nav.slice(1)}
-          switchLang={other}
-          switchLabel={ctx.labels?.languageName?.[other] || (other === "ar" ? "AR" : "English")}
-          waUrl={ctx.waUrl}
-          bookNow={ctx.dict.bookNow}
-          menuLabel={ctx.dict.menu}
-          closeLabel={ctx.dict.close}
-        />
+        <div className="site-top">
+          <TopBar
+            facebookUrl={ctx.settings?.facebookUrl}
+            instagramUrl={ctx.settings?.instagramUrl}
+            phoneDisplay={ctx.settings?.phoneDisplay}
+          />
+          <SiteHeader
+            lang={lang}
+            campName={ctx.campName}
+            logoUrl={ctx.logoUrl}
+            nav={nav.slice(1)}
+            switchLang={other}
+            switchLabel={ctx.labels?.languageName?.[other] || (other === "ar" ? "AR" : "English")}
+            waUrl={ctx.waUrl}
+            bookNow={ctx.dict.bookNow}
+            menuLabel={ctx.dict.menu}
+            closeLabel={ctx.dict.close}
+          />
+        </div>
         <main id="main">{children}</main>
         <SiteFooter ctx={ctx} nav={nav} />
         <WhatsAppFloat href={ctx.waUrl} label={ctx.dict.chatWithUs} />
