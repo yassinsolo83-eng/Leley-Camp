@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 
-export type GalleryItem = { key: string; src: string; alt: string; wide: boolean; pos?: string };
+export type GalleryItem = { key: string; src: string; videoSrc?: string; alt: string; wide: boolean; pos?: string };
 
 type Props = { items: GalleryItem[]; labels: { close: string; previous: string; next: string } };
 
@@ -42,6 +42,7 @@ export default function GalleryGrid({ items, labels }: Props) {
         {items.map((item, i) => (
           <button type="button" key={item.key} className={`g-item${item.wide ? " wide" : ""}`} onClick={() => setIndex(i)} aria-label={item.alt}>
             <Image src={item.src} alt={item.alt} fill sizes={item.wide ? "(max-width: 600px) 100vw, 50vw" : "(max-width: 600px) 100vw, 25vw"} style={{ objectPosition: item.pos }} />
+            {item.videoSrc && <span className="g-play" aria-hidden="true">▶</span>}
           </button>
         ))}
       </div>
@@ -51,7 +52,13 @@ export default function GalleryGrid({ items, labels }: Props) {
           <button type="button" className="lb-btn lb-close" onClick={close} aria-label={labels.close}>✕</button>
           <button type="button" className="lb-btn lb-prev" onClick={() => move(-1)} aria-label={labels.previous}>‹</button>
           <div className="lb-img">
-            <Image src={current.src} alt={current.alt} fill sizes="92vw" quality={85} style={{ objectFit: "contain" }} />
+            {current.videoSrc ? (
+              <video key={current.key} controls autoPlay playsInline poster={current.src} className="lb-video">
+                <source src={current.videoSrc} type="video/mp4" />
+              </video>
+            ) : (
+              <Image src={current.src} alt={current.alt} fill sizes="92vw" quality={85} style={{ objectFit: "contain" }} />
+            )}
           </div>
           <button type="button" className="lb-btn lb-next" onClick={() => move(1)} aria-label={labels.next}>›</button>
           <p className="lb-caption">{current.alt} · {index! + 1}/{items.length}</p>
