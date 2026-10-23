@@ -12,10 +12,13 @@ export default function VisitorCounter({ label }: { label: string }) {
   useEffect(() => {
     let counted = false;
     try { counted = localStorage.getItem(STORAGE_KEY) === "1"; } catch {}
+    // Mark this browser as counted right away (before the request even goes out) — not
+    // after the response comes back — so a second effect run (fast reload, double mount)
+    // can never slip in a second POST before the flag is set.
+    if (!counted) { try { localStorage.setItem(STORAGE_KEY, "1"); } catch {} }
     fetch("/api/visit", { method: counted ? "GET" : "POST" })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d: { count?: number; show?: boolean }) => {
-        if (!counted) { try { localStorage.setItem(STORAGE_KEY, "1"); } catch {} }
         if (d.show !== false && typeof d.count === "number") setCount(d.count);
       })
       .catch(() => {});
