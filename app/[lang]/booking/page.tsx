@@ -42,7 +42,7 @@ export default async function BookingPage({ params }: PageProps<"/[lang]/booking
             <BookLinks bookingUrl={s?.bookingUrl} dict={dict} />
           </div>
           <ReserveForm
-            cabins={cabins.map((c) => ({ value: tr(c.name, "en"), label: tr(c.name, lang), slug: c.slug })).filter((o) => o.value)}
+            cabins={cabins.map((c) => ({ value: tr(c.name, "en"), label: tr(c.name, lang), slug: c.slug, blockedDates: c.blockedDates })).filter((o) => o.value)}
             plans={prices
               .map((p) => ({ value: tr(p.name, "en"), label: tr(p.name, lang), priceEgyptian: p.priceEgyptian, priceForeigner: p.priceForeigner, currency: p.currency, unit: tr(p.unit, lang), guestsIncluded: p.guestsIncluded }))
               .filter((o) => o.value)}

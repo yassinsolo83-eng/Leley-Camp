@@ -67,6 +67,8 @@ export type Pages = {
   contactHeading?: SectionHeading;
 };
 
+export type BlockedRange = { _key: string; from?: string; to?: string; note?: string };
+
 export type Cabin = {
   _id: string;
   slug?: string;
@@ -77,6 +79,7 @@ export type Cabin = {
   details?: Localized[];
   standardAmenities?: string[];
   amenities?: Localized[];
+  blockedDates?: BlockedRange[];
   photos?: (SanityImage & { _key: string })[];
 };
 export type Activity = { _id: string; name?: Localized; description?: Localized; icon?: string; image?: SanityImage };
