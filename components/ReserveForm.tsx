@@ -470,7 +470,7 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict,
           {status === "sent" && (
             <p className="form-note success" role="status">
               {dict.formSuccess}
-              {wa && (
+              {wa && auth.state !== "out" && (
                 <>
                   <br />
                   <a className="form-wa" href={wa} target="_blank" rel="noopener noreferrer">
