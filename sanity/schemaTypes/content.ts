@@ -27,23 +27,6 @@ export const cabin = defineType({
     defineField({ name: "amenities", title: "Other amenities", type: "array", of: [defineArrayMember({ type: "localeString" })],
       description: "Anything specific to this cabin that isn't in the tick list above." }),
     defineField({ name: "photos", title: "More photos", type: "array", of: [defineArrayMember({ type: "image", options: { hotspot: true } })] }),
-    defineField({
-      name: "blockedDates", title: "Blocked dates", type: "array",
-      description: "Add a date range whenever this cabin is booked (by WhatsApp, Booking.com, etc). Guests won't be able to request it for these dates on the site, and the booking form will show these as unavailable.",
-      of: [defineArrayMember({
-        type: "object",
-        name: "blockedRange",
-        fields: [
-          defineField({ name: "from", title: "From", type: "date", validation: (r) => r.required() }),
-          defineField({ name: "to", title: "To", type: "date", validation: (r) => r.required() }),
-          defineField({ name: "note", title: "Note", type: "string", description: "Optional, for your own reference — e.g. a guest's name." }),
-        ],
-        preview: {
-          select: { from: "from", to: "to", note: "note" },
-          prepare: ({ from, to, note }) => ({ title: `${from || "?"} → ${to || "?"}`, subtitle: note }),
-        },
-      })],
-    }),
     order,
   ],
   preview: { select: { title: "name.en", subtitle: "tag.en", media: "image" } },

@@ -30,6 +30,10 @@ export const structure: StructureResolver = (S) =>
         S.documentTypeList("customer").title("Customers")
           .defaultOrdering([{ field: "lastBookingAt", direction: "desc" }])
       ),
+      S.listItem().title("Blocked dates").id("blockedDates").child(
+        S.documentTypeList("blockedDate").title("Blocked dates")
+          .defaultOrdering([{ field: "from", direction: "asc" }])
+      ),
       S.divider(),
       singleton(S, "homePage", "Home page"),
       singleton(S, "pages", "Other pages"),

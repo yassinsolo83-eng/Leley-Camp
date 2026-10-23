@@ -67,7 +67,7 @@ export type Pages = {
   contactHeading?: SectionHeading;
 };
 
-export type BlockedRange = { _key: string; from?: string; to?: string; note?: string };
+export type BlockedRange = { from?: string; to?: string; note?: string };
 
 export type Cabin = {
   _id: string;
