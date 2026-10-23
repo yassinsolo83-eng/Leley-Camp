@@ -7,8 +7,10 @@ import { COUNTRIES, DEFAULT_COUNTRY, flagEmoji, splitPhone } from "@/lib/countri
 import { guestStatusLabel } from "@/lib/booking";
 import { CHOOSE_PLAN_EVENT } from "./PricePlans";
 import { WhatsAppIcon } from "./icons";
+import AvailabilityCalendar from "./AvailabilityCalendar";
 
-type Option = { value: string; label: string; slug?: string; priceEgyptian?: number; priceForeigner?: number; currency?: string; unit?: string; guestsIncluded?: number };
+type BlockedRange = { from?: string; to?: string };
+type Option = { value: string; label: string; slug?: string; priceEgyptian?: number; priceForeigner?: number; currency?: string; unit?: string; guestsIncluded?: number; blockedDates?: BlockedRange[] };
 
 type Props = {
   cabins: Option[];
@@ -49,6 +51,11 @@ const REQUIRED: (keyof Fields)[] = ["name", "phone", "checkIn", "checkOut", "gue
 // trunk prefix left over from habit, no heuristics needed to match it up later.
 function fullPhone(f: Fields) {
   return `${f.phoneCountry}${f.phone.replace(/^0+/, "")}`;
+}
+
+// Whether the [checkIn, checkOut) stay overlaps any blocked range on the selected cabin.
+function overlapsBlocked(checkIn: string, checkOut: string, blocked?: BlockedRange[]) {
+  return (blocked || []).some((r) => r.from && r.to && checkIn < r.to && checkOut > r.from);
 }
 
 function today() {
@@ -248,6 +255,13 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict,
       setError(dict.formDates);
       return;
     }
+    const pickedCabin = cabins.find((c) => c.value === fields.cabin);
+    if (overlapsBlocked(fields.checkIn, fields.checkOut, pickedCabin?.blockedDates)) {
+      setInvalid(["checkIn", "checkOut"]);
+      setStatus("error");
+      setError(dict.formUnavailable);
+      return;
+    }
 
     setStatus("sending");
     setError("");
@@ -429,6 +443,16 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict,
                 <option value="">{dict.formAnyCabin}</option>
                 {cabins.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
+            </div>
+          )}
+          {fields.cabin && (
+            <div className="field full">
+              <label>{dict.availabilityTitle}</label>
+              <AvailabilityCalendar
+                blockedDates={cabins.find((c) => c.value === fields.cabin)?.blockedDates || []}
+                lang={lang}
+                dict={dict}
+              />
             </div>
           )}
           {plans.length > 0 && (
