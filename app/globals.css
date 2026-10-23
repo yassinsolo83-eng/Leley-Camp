@@ -398,9 +398,10 @@ a:hover .arrow-icon { transform: translateX(3px); }
 .availability-weekdays { font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
 .availability-day { font-size: 0.85rem; padding: 6px 0; border-radius: 6px; color: var(--ink); }
 .availability-day.past { opacity: 0.35; }
-.availability-day.blocked { background: var(--line); color: var(--muted); text-decoration: line-through; opacity: 0.7; }
+.availability-day.blocked { background: rgba(155, 44, 44, 0.16); color: var(--carpet-dark); font-weight: 700; }
+.availability-day.blocked.past { opacity: 0.5; }
 .availability-legend { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); margin-top: 10px; }
-.availability-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line); border: 1px solid var(--muted); display: inline-block; }
+.availability-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(155, 44, 44, 0.16); border: 1px solid var(--carpet-dark); display: inline-block; }
 .field-hint { font-size: 0.85rem; }
 .field-hint.checking { color: var(--muted); }
 .field-hint.ok { color: #14504A; }
