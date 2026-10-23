@@ -62,7 +62,7 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
   // A visible way out for anyone who'd rather not sign in (or whose sign-in email
   // isn't arriving) — same form, sent straight to WhatsApp instead of needing an
   // account. See app/api/inquiry/route.ts for how this is saved differently.
-  const [guestMode, setGuestMode] = useState(false);
+  const [guestMode, setGuestMode] = useState(true);
 
   const [fields, setFields] = useState<Fields>(EMPTY);
   const [invalid, setInvalid] = useState<(keyof Fields)[]>([]);
@@ -335,7 +335,7 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
           <button type="button" className="plan-confirm-clear" onClick={signOut}>{dict.formSignOut}</button>
         </p>
       )}
-      {auth.state === "out" && (
+      {false && auth.state === "out" && (
         <p className="field-hint">
           <button type="button" className="form-link" onClick={() => setGuestMode(false)}>{dict.formGuestBack}</button>
         </p>
