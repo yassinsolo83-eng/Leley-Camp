@@ -23,7 +23,7 @@ export default async function GalleryPage({ params }: PageProps<"/[lang]/gallery
   const { home, pages, dict, settings: s } = ctx;
 
   const items = (home?.gallery ?? [])
-    .map((g) => ({ key: g._key, src: imageUrl(g.image), alt: tr(g.alt, lang) || ctx.campName, wide: Boolean(g.wide), pos: imagePosition(g.image) }))
+    .map((g) => ({ key: g._key, src: imageUrl(g.image), videoSrc: g.videoUrl, alt: tr(g.alt, lang) || ctx.campName, wide: Boolean(g.wide), pos: imagePosition(g.image) }))
     .filter((g) => g.src);
   const poster = imageUrl(home?.videoPoster);
 
