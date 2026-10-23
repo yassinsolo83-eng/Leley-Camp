@@ -41,7 +41,7 @@ export default async function CabinPage({ params }: PageProps<"/[lang]/cabins/[s
     .filter((a) => cabin.standardAmenities?.includes(a.value))
     .map((a) => dict[a.labelKey]);
   const amenities = [...standardAmenities, ...(cabin.amenities ?? []).map((a) => tr(a, lang)).filter(Boolean)];
-  const photos = (cabin.photos ?? []).map((p, i) => ({ key: p._key || String(i), src: imageUrl(p), alt: name, wide: false, pos: imagePosition(p) })).filter((p) => p.src);
+  const photos = (cabin.photos ?? []).map((p, i) => ({ key: p._key || String(i), type: "photo" as const, src: imageUrl(p), alt: name, wide: false, pos: imagePosition(p) })).filter((p) => p.src);
   const others = cabins.filter((c) => c._id !== cabin._id);
   const bookHref = `${localePath(lang, "/booking")}?cabin=${cabin.slug}#reserve`;
 
@@ -83,7 +83,7 @@ export default async function CabinPage({ params }: PageProps<"/[lang]/cabins/[s
       {photos.length > 0 && (
         <section className="section section-paper">
           <div className="container">
-            <GalleryGrid items={photos} labels={{ close: dict.close, previous: dict.previous, next: dict.next }} />
+            <GalleryGrid items={photos} labels={{ close: dict.close, previous: dict.previous, next: dict.next, all: dict.galleryAll, photos: dict.galleryPhotosOnly, videos: dict.galleryVideosOnly }} />
           </div>
         </section>
       )}

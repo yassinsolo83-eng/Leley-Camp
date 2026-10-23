@@ -36,7 +36,8 @@ export type SiteSettings = {
 
 export type PageHeader = { title?: Localized; intro?: Localized; image?: SanityImage };
 
-export type GalleryEntry = { _key: string; image?: SanityImage; videoUrl?: string; alt?: Localized; wide?: boolean };
+export type GalleryEntry = { _key: string; image?: SanityImage; alt?: Localized; wide?: boolean };
+export type GalleryVideo = { _key: string; videoUrl?: string; poster?: SanityImage; alt?: Localized; wide?: boolean };
 
 export type HomePage = {
   hero?: { badge?: Localized; title?: Localized; subtitle?: Localized; image?: SanityImage; mobileImage?: SanityImage };
@@ -50,6 +51,7 @@ export type HomePage = {
   reviewsHeading?: SectionHeading;
   ctaBand?: { title?: Localized; subtitle?: Localized };
   gallery?: GalleryEntry[];
+  galleryVideos?: GalleryVideo[];
   videoUrl?: string;
   videoPoster?: SanityImage;
 };

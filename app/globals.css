@@ -312,7 +312,12 @@ a:hover .arrow-icon { transform: translateX(3px); }
 .g-item.wide { grid-column: span 2; }
 .g-item img { transition: transform .5s; }
 .g-item:hover img { transform: scale(1.04); }
-.g-play { position: absolute; inset: 0; margin: auto; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; background: rgba(15, 58, 74, 0.72); color: var(--sand); border-radius: 50%; font-size: 1rem; pointer-events: none; }
+.g-play { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: rgba(15, 58, 74, 0.38); pointer-events: none; }
+.g-play-icon { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; background: rgba(15, 58, 74, 0.82); color: var(--sand); border-radius: 50%; font-size: 1rem; }
+.g-play-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--sand); background: rgba(15, 58, 74, 0.82); padding: 3px 10px; border-radius: 999px; }
+.gallery-filter { display: inline-flex; gap: 4px; background: var(--white); border: 1px solid var(--line); border-radius: var(--radius); padding: 4px; margin-bottom: 20px; }
+.gallery-filter button { border: none; background: transparent; padding: 8px 18px; border-radius: calc(var(--radius) - 4px); font-weight: 600; font-size: 0.92rem; color: var(--deep); cursor: pointer; }
+.gallery-filter button.active { background: var(--deep); color: var(--sand); }
 
 .lightbox { position: fixed; inset: 0; z-index: 2000; background: rgba(11, 46, 59, 0.96); display: flex; align-items: center; justify-content: center; }
 .lb-img { position: relative; width: 88vw; height: 80vh; }

@@ -22,9 +22,13 @@ export default async function GalleryPage({ params }: PageProps<"/[lang]/gallery
   const ctx = await getContext(lang);
   const { home, pages, dict, settings: s } = ctx;
 
-  const items = (home?.gallery ?? [])
-    .map((g) => ({ key: g._key, src: imageUrl(g.image), videoSrc: g.videoUrl, alt: tr(g.alt, lang) || ctx.campName, wide: Boolean(g.wide), pos: imagePosition(g.image) }))
+  const photoItems = (home?.gallery ?? [])
+    .map((g) => ({ key: g._key, type: "photo" as const, src: imageUrl(g.image), alt: tr(g.alt, lang) || ctx.campName, wide: Boolean(g.wide), pos: imagePosition(g.image) }))
     .filter((g) => g.src);
+  const videoItems = (home?.galleryVideos ?? [])
+    .map((g) => ({ key: g._key, type: "video" as const, src: imageUrl(g.poster), videoSrc: g.videoUrl, alt: tr(g.alt, lang) || ctx.campName, wide: Boolean(g.wide), pos: imagePosition(g.poster) }))
+    .filter((g) => g.src && g.videoSrc);
+  const items = [...photoItems, ...videoItems];
   const poster = imageUrl(home?.videoPoster);
 
   return (
@@ -32,7 +36,7 @@ export default async function GalleryPage({ params }: PageProps<"/[lang]/gallery
       <PageHero header={pages?.gallery} lang={lang} fallbackTitle={dict.navGallery} fallbackImage={FALLBACK.hero} />
       <section className="section">
         <div className="container">
-          <GalleryGrid items={items} labels={{ close: dict.close, previous: dict.previous, next: dict.next }} />
+          <GalleryGrid items={items} labels={{ close: dict.close, previous: dict.previous, next: dict.next, all: dict.galleryAll, photos: dict.galleryPhotosOnly, videos: dict.galleryVideosOnly }} />
         </div>
       </section>
 

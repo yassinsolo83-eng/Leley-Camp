@@ -5,7 +5,7 @@ export const pageQuery = groq`{
   "home": *[_id == "homePage"][0]{
     ...,
     "videoUrl": video.asset->url,
-    gallery[]{ ..., "videoUrl": video.asset->url }
+    galleryVideos[]{ ..., "videoUrl": video.asset->url }
   },
   "pages": *[_id == "pages"][0],
   "legal": *[_id == "legalPages"][0],
