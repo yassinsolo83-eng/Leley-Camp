@@ -24,7 +24,7 @@ export default function IntroWeave({
     <>
       <script
         dangerouslySetInnerHTML={{
-          __html: `try{var p=location.pathname;if((p==="/en"||p==="/en/"||p==="/ar"||p==="/ar/")&&!matchMedia("(prefers-reduced-motion: reduce)").matches){var s=document.createElement("style");s.textContent=".leley-intro{display:flex;animation:li-lift .85s cubic-bezier(.76,0,.24,1) 1.9s forwards}.leley-rug-row{animation:weave 1s steps(32,end) .2s both}.leley-rug-row-flip{animation-delay:.34s}[dir=rtl] .leley-rug-row{animation-name:weave-rtl}.leley-intro-logo{animation:li-pop .6s cubic-bezier(.22,.61,.36,1) .95s both}.leley-intro-name{animation:li-rise .6s cubic-bezier(.22,.61,.36,1) 1.2s both}";document.head.appendChild(s)}}catch(e){}`,
+          __html: `try{var p=location.pathname;if((p==="/en"||p==="/en/"||p==="/ar"||p==="/ar/")&&!matchMedia("(prefers-reduced-motion: reduce)").matches){var s=document.createElement("style");s.textContent=".leley-intro{display:flex;animation:li-lift .5s cubic-bezier(.76,0,.24,1) 1s forwards}.leley-rug-row{animation:weave .6s steps(32,end) .1s both}.leley-rug-row-flip{animation-delay:.2s}[dir=rtl] .leley-rug-row{animation-name:weave-rtl}.leley-intro-logo{animation:li-pop .35s cubic-bezier(.22,.61,.36,1) .5s both}.leley-intro-name{animation:li-rise .35s cubic-bezier(.22,.61,.36,1) .65s both}";document.head.appendChild(s)}}catch(e){}`,
         }}
       />
       <div className="leley-intro" role="presentation" aria-hidden="true">
