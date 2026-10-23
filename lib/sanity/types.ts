@@ -75,6 +75,7 @@ export type Cabin = {
   tag?: Localized;
   image?: SanityImage;
   details?: Localized[];
+  standardAmenities?: string[];
   amenities?: Localized[];
   photos?: (SanityImage & { _key: string })[];
 };

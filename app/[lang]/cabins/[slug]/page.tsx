@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LOCALES, isLocale, localePath, tr } from "@/lib/i18n";
+import { STANDARD_AMENITIES } from "@/lib/amenities";
 import { getContext, getPageData, pageMetadata } from "@/lib/data";
 import { imagePosition, imageUrl } from "@/lib/sanity/image";
 import Backdrop from "@/components/Backdrop";
@@ -36,7 +37,10 @@ export default async function CabinPage({ params }: PageProps<"/[lang]/cabins/[s
   const name = tr(cabin.name, lang);
   const tag = tr(cabin.tag, lang);
   const details = (cabin.details ?? []).map((d) => tr(d, lang)).filter(Boolean);
-  const amenities = (cabin.amenities ?? []).map((a) => tr(a, lang)).filter(Boolean);
+  const standardAmenities = STANDARD_AMENITIES
+    .filter((a) => cabin.standardAmenities?.includes(a.value))
+    .map((a) => dict[a.labelKey]);
+  const amenities = [...standardAmenities, ...(cabin.amenities ?? []).map((a) => tr(a, lang)).filter(Boolean)];
   const photos = (cabin.photos ?? []).map((p, i) => ({ key: p._key || String(i), src: imageUrl(p), alt: name, wide: false, pos: imagePosition(p) })).filter((p) => p.src);
   const others = cabins.filter((c) => c._id !== cabin._id);
   const bookHref = `${localePath(lang, "/booking")}?cabin=${cabin.slug}#reserve`;

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, localePath, tr } from "@/lib/i18n";
+import { STANDARD_AMENITIES } from "@/lib/amenities";
 import { getContext, getPageData, pageMetadata } from "@/lib/data";
 import { imagePosition, imageUrl } from "@/lib/sanity/image";
 import PageHero from "@/components/PageHero";
@@ -32,7 +33,8 @@ export default async function CabinsPage({ params }: PageProps<"/[lang]/cabins">
             const name = tr(c.name, lang);
             const src = imageUrl(c.image);
             const tag = tr(c.tag, lang);
-            const amenities = (c.amenities ?? []).map((a) => tr(a, lang)).filter(Boolean).slice(0, 4);
+            const standardAmenities = STANDARD_AMENITIES.filter((a) => c.standardAmenities?.includes(a.value)).map((a) => dict[a.labelKey]);
+            const amenities = [...standardAmenities, ...(c.amenities ?? []).map((a) => tr(a, lang)).filter(Boolean)].slice(0, 4);
             const href = localePath(lang, `/cabins/${c.slug}`);
             return (
               <article className="cabin-row" key={c._id}>
