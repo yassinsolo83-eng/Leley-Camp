@@ -7,9 +7,14 @@ export const siteSettings = defineType({
   groups: [
     { name: "contact", title: "Contact & links", default: true },
     { name: "brand", title: "Brand" },
+    { name: "booking", title: "Booking" },
     { name: "seo", title: "SEO & sharing" },
   ],
   fields: [
+    defineField({
+      name: "showPrices", title: "Show prices on the website", type: "boolean", group: "booking", initialValue: true,
+      description: "Turn off to hide all prices from guests — packages still show, just without the price.",
+    }),
     defineField({ name: "whatsappNumber", title: "WhatsApp number", type: "string", group: "contact",
       description: "International format, digits only. Example: 201274057142",
       validation: (r) => r.regex(/^\d{8,15}$/, { name: "digits" }).error("Digits only, with country code, no + or spaces.") }),

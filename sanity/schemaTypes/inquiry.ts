@@ -34,6 +34,8 @@ export const inquiry = defineType({
       defineField({ name: "guests", title: "Guests", type: "number" }),
       defineField({ name: "cabin", title: "Cabin", type: "string" }),
       defineField({ name: "plan", title: "Package", type: "string" }),
+      defineField({ name: "guestType", title: "Guest type", type: "string",
+        options: { list: [{ title: "Egyptian", value: "egyptian" }, { title: "Foreigner", value: "foreigner" }] } }),
       defineField({ name: "message", title: "Message", type: "text", rows: 4 }),
       defineField({ name: "language", title: "Site language", type: "string" }),
       defineField({ name: "submittedAt", title: "Sent at", type: "datetime" }),

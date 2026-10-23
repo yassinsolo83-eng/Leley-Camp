@@ -1,4 +1,3 @@
-import { BulkImageInput } from "../components/BulkImageInput";
 import { defineArrayMember, defineField, defineType } from "sanity";
 
 const order = defineField({ name: "order", title: "Order on the page", type: "number", description: "Lower numbers show first.", initialValue: 10 });
@@ -18,7 +17,7 @@ export const cabin = defineType({
     defineField({ name: "details", title: "Full description", type: "array", of: [defineArrayMember({ type: "localeText" })],
       description: "Paragraphs shown on the cabin's own page." }),
     defineField({ name: "amenities", title: "What's inside", type: "array", of: [defineArrayMember({ type: "localeString" })] }),
-    defineField({ name: "photos", title: "More photos", type: "array", components: { input: BulkImageInput }, of: [defineArrayMember({ type: "image", options: { hotspot: true } })] }),
+    defineField({ name: "photos", title: "More photos", type: "array", of: [defineArrayMember({ type: "image", options: { hotspot: true } })] }),
     order,
   ],
   preview: { select: { title: "name.en", subtitle: "tag.en", media: "image" } },
@@ -45,7 +44,12 @@ export const pricePlan = defineType({
   type: "document",
   fields: [
     defineField({ name: "name", title: "Name", type: "localeString", validation: (r) => r.required() }),
-    defineField({ name: "price", title: "Price", type: "number", validation: (r) => r.required().min(0) }),
+    defineField({ name: "priceEgyptian", title: "Price — Egyptian", type: "number", validation: (r) => r.required().min(0) }),
+    defineField({
+      name: "priceForeigner", title: "Price — Foreigner", type: "number",
+      description: "Leave empty to charge the same price as Egyptian guests.",
+      validation: (r) => r.min(0),
+    }),
     defineField({ name: "currency", title: "Currency", type: "string", initialValue: "EGP" }),
     defineField({ name: "unit", title: "Per", type: "localeString", description: "Example: / night per person" }),
     defineField({
@@ -59,10 +63,10 @@ export const pricePlan = defineType({
     defineField({ name: "active", title: "Show on the website", type: "boolean", initialValue: true }),
     order,
   ],
-  preview: { select: { title: "name.en", price: "price", currency: "currency", active: "active", guests: "guestsIncluded" },
-    prepare: ({ title, price, currency, active, guests }) => ({
+  preview: { select: { title: "name.en", price: "priceEgyptian", priceForeigner: "priceForeigner", currency: "currency", active: "active", guests: "guestsIncluded" },
+    prepare: ({ title, price, priceForeigner, currency, active, guests }) => ({
       title: title || "Plan",
-      subtitle: `${price ?? "—"} ${currency || ""}${guests ? ` · fits ${guests}` : ""}${active === false ? " · hidden" : ""}`,
+      subtitle: `${price ?? "—"}${priceForeigner ? ` / ${priceForeigner} foreigner` : ""} ${currency || ""}${guests ? ` · fits ${guests}` : ""}${active === false ? " · hidden" : ""}`,
     }) },
 });
 
