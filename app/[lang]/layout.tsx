@@ -4,6 +4,7 @@ import type { Viewport } from "next";
 import { LOCALES, isLocale, otherLocale } from "@/lib/i18n";
 import { getContext } from "@/lib/data";
 import { navItems } from "@/lib/nav";
+import TopBar from "@/components/TopBar";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
@@ -30,6 +31,11 @@ export default async function LangLayout({ children, params }: LayoutProps<"/[la
         {/* The first home-page view of each session plays the intro overlay (components/IntroWeave.tsx),
             where the rug weaves in and the panel lifts to reveal the hero. */}
         <a className="skip-link" href="#main">{ctx.dict.skipToContent}</a>
+        <TopBar
+          facebookUrl={ctx.settings?.facebookUrl}
+          instagramUrl={ctx.settings?.instagramUrl}
+          phoneDisplay={ctx.settings?.phoneDisplay}
+        />
         <SiteHeader
           lang={lang}
           campName={ctx.campName}
