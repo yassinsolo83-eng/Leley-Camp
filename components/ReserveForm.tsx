@@ -8,7 +8,7 @@ import { guestStatusLabel } from "@/lib/booking";
 import { CHOOSE_PLAN_EVENT } from "./PricePlans";
 import { WhatsAppIcon } from "./icons";
 
-type Option = { value: string; label: string; slug?: string; price?: number; currency?: string; unit?: string; guestsIncluded?: number };
+type Option = { value: string; label: string; slug?: string; priceEgyptian?: number; priceForeigner?: number; currency?: string; unit?: string; guestsIncluded?: number };
 
 type Props = {
   cabins: Option[];
@@ -16,11 +16,14 @@ type Props = {
   whatsappNumber?: string;
   lang: Locale;
   dict: Dictionary;
+  showPrices?: boolean;
 };
+
+type GuestType = "egyptian" | "foreigner";
 
 type Fields = {
   name: string; phone: string; phoneCountry: string; checkIn: string; checkOut: string;
-  guests: string; cabin: string; plan: string; message: string; company: string; promoCode: string;
+  guests: string; cabin: string; plan: string; guestType: GuestType; message: string; company: string; promoCode: string;
 };
 
 type PromoResult = { discountType: string; value: number | null; currency: string | null; perkDescription: string | null };
@@ -37,7 +40,7 @@ type Auth =
 
 const EMPTY: Fields = {
   name: "", phone: "", phoneCountry: DEFAULT_COUNTRY, checkIn: "", checkOut: "",
-  guests: "2", cabin: "", plan: "", message: "", company: "", promoCode: "",
+  guests: "2", cabin: "", plan: "", guestType: "egyptian", message: "", company: "", promoCode: "",
 };
 const REQUIRED: (keyof Fields)[] = ["name", "phone", "checkIn", "checkOut", "guests"];
 
@@ -54,7 +57,7 @@ function today() {
   return d.toISOString().slice(0, 10);
 }
 
-export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict }: Props) {
+export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict, showPrices = true }: Props) {
   const [auth, setAuth] = useState<Auth>({ state: "checking" });
   const [loginEmail, setLoginEmail] = useState("");
   const [loginStatus, setLoginStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -210,6 +213,9 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
   }
 
   const selectedPlan = plans.find((p) => p.value === fields.plan);
+  const selectedPlanPrice = selectedPlan
+    ? (fields.guestType === "foreigner" ? selectedPlan.priceForeigner ?? selectedPlan.priceEgyptian : selectedPlan.priceEgyptian)
+    : undefined;
 
   function summary(f: Fields) {
     const label = (list: Option[], value: string) => list.find((o) => o.value === value)?.label || value;
@@ -221,6 +227,7 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
       `${dict.formGuests}: ${f.guests}`,
       f.cabin && `${dict.formCabin}: ${label(cabins, f.cabin)}`,
       f.plan && `${dict.formPlan}: ${label(plans, f.plan)}`,
+      `${dict.formGuestType}: ${f.guestType === "foreigner" ? dict.guestForeigner : dict.guestEgyptian}`,
       f.promoCode && `${dict.formPromoCode}: ${f.promoCode}`,
       f.message && f.message,
     ].filter(Boolean).join("\n");
@@ -251,7 +258,7 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
         body: JSON.stringify({
           ...fields,
           phone: fullPhone(fields),
-          planPrice: selectedPlan?.price,
+          planPrice: selectedPlanPrice,
           planCurrency: selectedPlan?.currency,
           planUnit: selectedPlan?.unit,
           language: lang,
@@ -367,9 +374,9 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
               <div>
                 <p className="plan-confirm-label">{dict.formPlanSelected}</p>
                 <p className="plan-confirm-name">{selectedPlan.label}</p>
-                {typeof selectedPlan.price === "number" && (
+                {showPrices && typeof selectedPlanPrice === "number" && (
                   <p className="plan-confirm-price">
-                    {formatNumber(selectedPlan.price)} {selectedPlan.currency} {selectedPlan.unit}
+                    {formatNumber(selectedPlanPrice)} {selectedPlan.currency} {selectedPlan.unit}
                   </p>
                 )}
               </div>
@@ -433,6 +440,13 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict 
               </select>
             </div>
           )}
+          <div className={cls("guestType", true)}>
+            <label htmlFor="r-guest-type">{dict.formGuestType}</label>
+            <select id="r-guest-type" value={fields.guestType} onChange={(e) => setFields((f) => ({ ...f, guestType: e.target.value as GuestType }))}>
+              <option value="egyptian">{dict.guestEgyptian}</option>
+              <option value="foreigner">{dict.guestForeigner}</option>
+            </select>
+          </div>
           <div className={cls("promoCode", true)}>
             <label htmlFor="r-promo">{dict.formPromoCode}</label>
             <input id="r-promo" dir="ltr" autoComplete="off" value={fields.promoCode} onChange={set("promoCode")} maxLength={40} />

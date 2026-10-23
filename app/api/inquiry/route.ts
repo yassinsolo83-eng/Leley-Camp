@@ -87,6 +87,7 @@ export async function POST(request: Request) {
     guests: Math.min(Math.max(parseInt(String(body.guests), 10) || 0, 0), 50),
     cabin: clip(body.cabin, 120),
     plan: clip(body.plan, 120),
+    guestType: body.guestType === "foreigner" ? "foreigner" : "egyptian",
     ...(hasPlanPrice && { planPrice: planPriceNum, planCurrency: clip(body.planCurrency, 10), planUnit: clip(body.planUnit, 60) }),
     message: clip(body.message, 1500),
     language: body.language === "ar" ? "ar" : "en",

@@ -31,6 +31,7 @@ export type SiteSettings = {
   metaDescription?: Localized;
   ogImage?: SanityImage;
   gaId?: string;
+  showPrices?: boolean;
 };
 
 export type PageHeader = { title?: Localized; intro?: Localized; image?: SanityImage };
@@ -81,7 +82,8 @@ export type Activity = { _id: string; name?: Localized; description?: Localized;
 export type PricePlan = {
   _id: string;
   name?: Localized;
-  price?: number;
+  priceEgyptian?: number;
+  priceForeigner?: number;
   currency?: string;
   unit?: Localized;
   guestsIncluded?: number;

@@ -320,6 +320,9 @@ a:hover .arrow-icon { transform: translateX(3px); }
 .video-wrap video { width: 100%; border-radius: var(--radius); background: #000; }
 
 /* ── Prices & booking ── */
+.guest-type-toggle { display: inline-flex; gap: 4px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 4px; margin-bottom: 20px; }
+.guest-type-toggle button { border: none; background: transparent; padding: 8px 18px; border-radius: calc(var(--radius) - 4px); font-weight: 600; font-size: 0.92rem; color: var(--deep); cursor: pointer; }
+.guest-type-toggle button.active { background: var(--deep); color: var(--sand); }
 .plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
 .plan { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius); padding: 30px 28px; display: flex; flex-direction: column; gap: 14px; }
 .plan.featured { background: var(--deep); color: var(--sand); border-color: var(--deep); }
