@@ -53,9 +53,9 @@ function fullPhone(f: Fields) {
   return `${f.phoneCountry}${f.phone.replace(/^0+/, "")}`;
 }
 
-// Whether the [checkIn, checkOut) stay overlaps any blocked range on the selected cabin.
+// Whether the [checkIn, checkOut) stay overlaps any blocked range (inclusive of its last day) on the selected cabin.
 function overlapsBlocked(checkIn: string, checkOut: string, blocked?: BlockedRange[]) {
-  return (blocked || []).some((r) => r.from && r.to && checkIn < r.to && checkOut > r.from);
+  return (blocked || []).some((r) => r.from && r.to && checkIn <= r.to && checkOut > r.from);
 }
 
 function today() {
