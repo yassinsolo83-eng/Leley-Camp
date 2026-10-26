@@ -64,7 +64,10 @@ function today() {
   return d.toISOString().slice(0, 10);
 }
 
-export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict, showPrices = true }: Props) {
+const DEFAULT_WHATSAPP = "201274057142";
+
+export default function ReserveForm({ cabins, plans, whatsappNumber: whatsappFromCms, lang, dict, showPrices = true }: Props) {
+  const whatsappNumber = whatsappFromCms || DEFAULT_WHATSAPP;
   const [auth, setAuth] = useState<Auth>({ state: "checking" });
   const [loginEmail, setLoginEmail] = useState("");
   const [loginStatus, setLoginStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -265,6 +268,10 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict,
 
     setStatus("sending");
     setError("");
+    // Opened right now, inside the click, because browsers block a window opened after
+    // an await. It is pointed at WhatsApp once the request is saved (or closed if not).
+    const waTab = window.open("", "_blank");
+    const closeTab = () => { try { waTab?.close(); } catch {} };
     try {
       const res = await fetch("/api/inquiry", {
         method: "POST",
@@ -279,12 +286,14 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict,
         }),
       });
       if (res.status === 401) {
+        closeTab();
         setAuth({ state: "out" });
         setStatus("idle");
         setLoginNotice(dict.formLoginExpired);
         return;
       }
       if (res.status === 409) {
+        closeTab();
         setStatus("idle");
         fetch("/api/auth/me").then((r) => r.json()).then((data) => {
           if (data?.loggedIn) setAuth({ state: "in", email: data.email, name: data.name || "", phone: data.phone || "", activeBooking: data.activeBooking || null });
@@ -296,13 +305,13 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict,
       setSentSummary(finishedSummary);
       setStatus("sent");
       setFields((f) => ({ ...EMPTY, phoneCountry: f.phoneCountry }));
-      // Guest (not-signed-in) submissions aren't tracked by an account, so WhatsApp
-      // is the only record of them — open it right away instead of waiting for a click.
-      if (auth.state === "out") {
-        const waLink = whatsappLink(whatsappNumber, finishedSummary);
-        if (waLink) window.open(waLink, "_blank", "noopener,noreferrer");
-      }
+      // Every saved request also goes straight to WhatsApp with the same details. If the
+      // browser refused the tab, the button under the success message does the same.
+      const waLink = whatsappLink(whatsappNumber, finishedSummary);
+      if (waTab && waLink) waTab.location.href = waLink;
+      else closeTab();
     } catch {
+      closeTab();
       setStatus("error");
       setError(dict.formError);
     }
@@ -316,6 +325,21 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict,
   };
 
   if (auth.state === "checking") return null;
+
+  // Saved, but the request only counts once the guest sends the message on WhatsApp,
+  // so the form is replaced by that single step.
+  if (status === "sent" && wa) {
+    return (
+      <div className="reserve-form">
+        <p className="form-note success" role="status">{dict.formSuccess}</p>
+        <div className="form-actions">
+          <a className="btn btn-red form-submit" href={wa} target="_blank" rel="noopener noreferrer">
+            <WhatsAppIcon size={18} color="#fff" /> {dict.formAlsoWhatsapp}
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   // Not signed in and hasn't asked for the WhatsApp fallback: all the form asks for
   // is an email to send a sign-in link to.
@@ -496,19 +520,6 @@ export default function ReserveForm({ cabins, plans, whatsappNumber, lang, dict,
           </div>
 
           {status === "error" && error && <p className="form-note error" role="alert">{error}</p>}
-          {status === "sent" && (
-            <p className="form-note success" role="status">
-              {dict.formSuccess}
-              {wa && auth.state !== "out" && (
-                <>
-                  <br />
-                  <a className="form-wa" href={wa} target="_blank" rel="noopener noreferrer">
-                    <WhatsAppIcon size={15} color="#25D366" /> {dict.formAlsoWhatsapp}
-                  </a>
-                </>
-              )}
-            </p>
-          )}
 
           <div className="form-actions">
             <button className="btn btn-red form-submit" type="submit" disabled={status === "sending"}>
