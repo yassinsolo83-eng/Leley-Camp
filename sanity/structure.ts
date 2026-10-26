@@ -1,4 +1,5 @@
 import type { StructureResolver } from "sanity/structure";
+import { CabinBlockedCalendar } from "./components/CabinBlockedCalendar";
 
 const singleton = (S: Parameters<StructureResolver>[0], id: string, title: string) =>
   S.listItem().id(id).title(title).child(S.document().schemaType(id).documentId(id).title(title));
@@ -31,8 +32,11 @@ export const structure: StructureResolver = (S) =>
           .defaultOrdering([{ field: "lastBookingAt", direction: "desc" }])
       ),
       S.listItem().title("Blocked dates").id("blockedDates").child(
-        S.documentTypeList("blockedDate").title("Blocked dates")
-          .defaultOrdering([{ field: "from", direction: "asc" }])
+        S.documentTypeList("cabin").title("Blocked dates — pick a cabin")
+          .defaultOrdering([{ field: "order", direction: "asc" }])
+          .child((cabinId) =>
+            S.component(CabinBlockedCalendar).id(`blocked-${cabinId}`).title("Blocked dates").options({ cabinId })
+          )
       ),
       S.divider(),
       singleton(S, "homePage", "Home page"),
