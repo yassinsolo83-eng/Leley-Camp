@@ -8,6 +8,7 @@ import TopBar from "@/components/TopBar";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
+import SocialSidebar from "@/components/SocialSidebar";
 import "../globals.css";
 
 export const viewport: Viewport = { themeColor: "#0F3A4A" };
@@ -53,6 +54,7 @@ export default async function LangLayout({ children, params }: LayoutProps<"/[la
         <main id="main">{children}</main>
         <SiteFooter ctx={ctx} nav={nav} />
         <WhatsAppFloat href={ctx.waUrl} label={ctx.dict.chatWithUs} />
+        <SocialSidebar facebookUrl={ctx.settings?.facebookUrl} instagramUrl={ctx.settings?.instagramUrl} />
         {gaId && (
           <>
             <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
