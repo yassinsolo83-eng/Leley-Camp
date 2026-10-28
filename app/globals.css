@@ -456,7 +456,7 @@ a:hover .arrow-icon { transform: translateX(3px); }
 .visit-count { color: var(--sand); font-weight: 600; }
 
 /* ── WhatsApp button ── */
-.social-sidebar { position: fixed; left: 0; top: 35%; transform: translateY(-50%); z-index: 800; display: flex; flex-direction: column; background: var(--deep); border-radius: 0 10px 10px 0; overflow: hidden; box-shadow: 0 6px 20px rgba(11, 46, 59, 0.25); }
+.social-sidebar { position: fixed; left: 0; top: 230px; z-index: 800; display: flex; flex-direction: column; background: var(--deep); border-radius: 0 10px 10px 0; overflow: hidden; box-shadow: 0 6px 20px rgba(11, 46, 59, 0.25); }
 .social-sidebar a { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--sand); opacity: 0.85; }
 .social-sidebar a:hover { opacity: 1; background: rgba(255, 255, 255, 0.08); }
 @media (max-width: 600px) { .social-sidebar a { width: 34px; height: 34px; } }
