@@ -412,7 +412,7 @@ export default function ReserveForm({ cabins, plans, whatsappNumber: whatsappFro
               <div>
                 <p className="plan-confirm-label">{dict.formPlanSelected}</p>
                 <p className="plan-confirm-name">{selectedPlan.label}</p>
-                {showPrices && typeof selectedPlanPrice === "number" && (
+                {showPrices && !!selectedPlanPrice && (
                   <p className="plan-confirm-price">
                     {formatNumber(selectedPlanPrice)} {selectedPlan.currency} {selectedPlan.unit}
                   </p>

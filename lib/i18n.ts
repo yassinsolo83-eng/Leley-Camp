@@ -59,6 +59,7 @@ export const DEFAULT_LABELS = {
   viewOnMaps: "Open in Google Maps",
   basedOnReviews: "Based on verified Google reviews",
   choosePlan: "Choose this",
+  askForPrice: "Ask for price",
   formName: "Full name",
   formPhone: "Phone / WhatsApp",
   formPhoneCountry: "Country code",

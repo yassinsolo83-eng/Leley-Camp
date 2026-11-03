@@ -42,11 +42,17 @@ export default function PricePlans({
               {badge && <p className="plan-badge">{badge}</p>}
               <h3 className="plan-name">{tr(p.name, lang)}</h3>
               {showPrices && (
-                <p className="plan-price">
-                  <span className="plan-num">{formatNumber(price ?? 0)}</span>
-                  <span className="plan-cur">{p.currency}</span>
-                  <span className="plan-unit">{tr(p.unit, lang)}</span>
-                </p>
+                price ? (
+                  <p className="plan-price">
+                    <span className="plan-num">{formatNumber(price)}</span>
+                    <span className="plan-cur">{p.currency}</span>
+                    <span className="plan-unit">{tr(p.unit, lang)}</span>
+                  </p>
+                ) : (
+                  <p className="plan-price">
+                    <span className="plan-num plan-ask">{dict.askForPrice}</span>
+                  </p>
+                )
               )}
               {!!p.features?.length && (
                 <ul className="plan-features">
