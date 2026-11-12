@@ -48,7 +48,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
     telephone: s?.whatsappNumber ? `+${s.whatsappNumber}` : undefined,
     image: imageUrl(home?.hero?.image) || `${base}${FALLBACK.hero}`,
     address: { "@type": "PostalAddress", addressLocality: "Nuweiba", addressRegion: "South Sinai", addressCountry: "EG" },
-    geo: { "@type": "GeoCoordinates", latitude: "29.0333", longitude: "34.6667" },
+    geo: { "@type": "GeoCoordinates", latitude: "29.0985206", longitude: "34.6797058" },
     aggregateRating: s?.rating && s?.reviewCount
       ? { "@type": "AggregateRating", ratingValue: String(s.rating), reviewCount: String(s.reviewCount) }
       : undefined,
