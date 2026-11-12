@@ -39,7 +39,7 @@ export default async function CabinsPage({ params }: PageProps<"/[lang]/cabins">
             return (
               <article className="cabin-row" key={c._id}>
                 <Link href={href} className="cabin-row-img" tabIndex={-1} aria-hidden="true">
-                  {src && <Image src={src} alt="" fill sizes="(max-width: 860px) 100vw, 55vw" style={{ objectPosition: imagePosition(c.image) }} />}
+                  {src && <Image src={src} alt={name} fill sizes="(max-width: 860px) 100vw, 55vw" style={{ objectPosition: imagePosition(c.image) }} />}
                 </Link>
                 <div className="cabin-row-body">
                   {tag && <p className="cabin-tag">{tag}</p>}

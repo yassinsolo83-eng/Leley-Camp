@@ -19,6 +19,7 @@ export const getPageData = cache(async (): Promise<PageData> => {
     activities: data?.activities ?? [],
     prices: data?.prices ?? [],
     reviews: data?.reviews ?? [],
+    updatedAt: data?.updatedAt ?? null,
   };
 });
 
@@ -51,8 +52,13 @@ export async function pageMetadata(lang: Locale, path: string, header?: PageHead
   const base = siteUrl(settings?.siteUrl);
   const name = settings?.campName || FALLBACK.name;
   const pageTitle = tr(header?.title, lang) || fallbackTitle;
-  const title = pageTitle ? `${pageTitle} | ${name}` : tr(settings?.metaTitle, lang) || name;
-  const description = tr(header?.intro, lang) || tr(settings?.metaDescription, lang) || tr(home?.hero?.subtitle, lang);
+  const title = tr(header?.seoTitle, lang) || (pageTitle ? `${pageTitle} | ${name}` : tr(settings?.metaTitle, lang) || name);
+  const description =
+    tr(header?.seoDescription, lang) ||
+    tr(header?.intro, lang) ||
+    tr(settings?.metaDescription, lang) ||
+    tr(home?.hero?.subtitle, lang) ||
+    `${name} in Nuweiba, South Sinai, Egypt. See the cabins, prices and experiences, and book directly on WhatsApp.`;
   const og = imageUrl(header?.image) || imageUrl(settings?.ogImage) || `${base}/images/og-image.jpg`;
   const url = localePath(lang, path);
 

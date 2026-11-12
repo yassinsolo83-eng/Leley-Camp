@@ -46,7 +46,7 @@ export default async function AboutPage({ params }: PageProps<"/[lang]/about">) 
             )}
           </div>
           <div className="story-img">
-            <Image src={imageUrl(about?.image, FALLBACK.about)} alt="" fill sizes="(max-width: 860px) 100vw, 45vw" style={{ objectPosition: imagePosition(about?.image) }} />
+            <Image src={imageUrl(about?.image, FALLBACK.about)} alt={tr(about?.heading?.title, lang) || ctx.campName} fill sizes="(max-width: 860px) 100vw, 45vw" style={{ objectPosition: imagePosition(about?.image) }} />
           </div>
         </div>
       </section>

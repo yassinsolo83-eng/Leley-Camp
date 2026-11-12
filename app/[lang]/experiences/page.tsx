@@ -30,7 +30,7 @@ export default async function ExperiencesPage({ params }: PageProps<"/[lang]/exp
             const src = imageUrl(a.image);
             return (
               <article className="exp-item" key={a._id}>
-                <div className="exp-item-img">{src && <Image src={src} alt="" fill sizes="(max-width: 860px) 100vw, 50vw" style={{ objectPosition: imagePosition(a.image) }} />}</div>
+                <div className="exp-item-img">{src && <Image src={src} alt={tr(a.name, lang)} fill sizes="(max-width: 860px) 100vw, 50vw" style={{ objectPosition: imagePosition(a.image) }} />}</div>
                 <div className="exp-item-body">
                   {a.icon && <p className="exp-icon" aria-hidden="true">{a.icon}</p>}
                   <h2 className="display exp-title">{tr(a.name, lang)}</h2>

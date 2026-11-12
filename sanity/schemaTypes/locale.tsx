@@ -46,5 +46,9 @@ export const pageHeader = defineType({
     defineField({ name: "title", title: "Title", type: "localeString" }),
     defineField({ name: "intro", title: "Intro", type: "localeText" }),
     defineField({ name: "image", title: "Header photo", type: "image", options: { hotspot: true } }),
+    defineField({ name: "seoTitle", title: "Google title (optional)", type: "localeString",
+      description: "Shown in Google results and the browser tab. Keep it under 60 characters and include the main keyword. Leave empty to use the page title." }),
+    defineField({ name: "seoDescription", title: "Google description (optional)", type: "localeText",
+      description: "Shown under the title in Google. 120–160 characters. Leave empty to use the intro." }),
   ],
 });

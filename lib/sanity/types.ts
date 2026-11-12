@@ -34,7 +34,7 @@ export type SiteSettings = {
   showPrices?: boolean;
 };
 
-export type PageHeader = { title?: Localized; intro?: Localized; image?: SanityImage };
+export type PageHeader = { title?: Localized; intro?: Localized; image?: SanityImage; seoTitle?: Localized; seoDescription?: Localized };
 
 export type GalleryEntry = { _key: string; image?: SanityImage; alt?: Localized; wide?: boolean };
 export type GalleryVideo = { _key: string; videoUrl?: string; poster?: SanityImage; alt?: Localized; wide?: boolean };
@@ -73,9 +73,12 @@ export type BlockedRange = { from?: string; to?: string; note?: string };
 
 export type Cabin = {
   _id: string;
+  _updatedAt?: string;
   slug?: string;
   name?: Localized;
   description?: Localized;
+  seoTitle?: Localized;
+  seoDescription?: Localized;
   tag?: Localized;
   image?: SanityImage;
   details?: Localized[];
@@ -129,4 +132,5 @@ export type PageData = {
   activities: Activity[];
   prices: PricePlan[];
   reviews: Review[];
+  updatedAt: string | null;
 };

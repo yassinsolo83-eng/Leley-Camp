@@ -129,7 +129,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
           const text = tr(d.header?.intro, lang);
           return (
             <Link key={d.href} className="door" href={localePath(lang, d.href)}>
-              <Image src={src} alt="" fill sizes="(max-width: 860px) 100vw, 34vw" style={{ objectPosition: imagePosition(d.header?.image) }} />
+              <Image src={src} alt={d.label} fill sizes="(max-width: 860px) 100vw, 34vw" style={{ objectPosition: imagePosition(d.header?.image) }} />
               <span className="door-text">
                 <span className="display door-title">{d.label}</span>
                 {text && <span className="door-sub">{text}</span>}

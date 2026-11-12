@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LOCALES, isLocale, localePath, tr } from "@/lib/i18n";
 import { STANDARD_AMENITIES } from "@/lib/amenities";
-import { getContext, getPageData, pageMetadata } from "@/lib/data";
+import { getContext, getPageData, pageMetadata, siteUrl } from "@/lib/data";
 import { imagePosition, imageUrl } from "@/lib/sanity/image";
 import Backdrop from "@/components/Backdrop";
 import CabinCard from "@/components/CabinCard";
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: PageProps<"/[lang]/cabins/[sl
   const { cabins } = await getPageData();
   const cabin = cabins.find((c) => c.slug === slug);
   if (!cabin) return {};
-  return pageMetadata(lang, `/cabins/${slug}`, { title: cabin.name, intro: cabin.description, image: cabin.image });
+  return pageMetadata(lang, `/cabins/${slug}`, { title: cabin.name, intro: cabin.description, image: cabin.image, seoTitle: cabin.seoTitle, seoDescription: cabin.seoDescription });
 }
 
 export default async function CabinPage({ params }: PageProps<"/[lang]/cabins/[slug]">) {
@@ -45,8 +45,33 @@ export default async function CabinPage({ params }: PageProps<"/[lang]/cabins/[s
   const others = cabins.filter((c) => c._id !== cabin._id);
   const bookHref = `${localePath(lang, "/booking")}?cabin=${cabin.slug}#reserve`;
 
+  const base = siteUrl(ctx.settings?.siteUrl);
+  const cabinUrl = `${base}${localePath(lang, `/cabins/${cabin.slug}`)}`;
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "HotelRoom",
+      name,
+      description: tr(cabin.description, lang) || undefined,
+      url: cabinUrl,
+      image: imageUrl(cabin.image) || undefined,
+      amenityFeature: amenities.map((a) => ({ "@type": "LocationFeatureSpecification", name: a, value: true })),
+      containedInPlace: { "@type": "LodgingBusiness", name: ctx.campName, url: `${base}${localePath(lang, "/")}` },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: ctx.campName, item: `${base}${localePath(lang, "/")}` },
+        { "@type": "ListItem", position: 2, name: dict.navCabins, item: `${base}${localePath(lang, "/cabins")}` },
+        { "@type": "ListItem", position: 3, name, item: cabinUrl },
+      ],
+    },
+  ];
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <section className="cabin-hero">
         <Backdrop src={imageUrl(cabin.image, "/images/cabin-1.jpg")} position={imagePosition(cabin.image)} priority />
         <div className="container cabin-hero-inner">

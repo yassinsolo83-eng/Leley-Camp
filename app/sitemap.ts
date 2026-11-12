@@ -4,13 +4,16 @@ import { getPageData, siteUrl } from "@/lib/data";
 const PATHS = ["", "/cabins", "/experiences", "/gallery", "/tour", "/booking", "/about"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { cabins, settings } = await getPageData();
+  const { cabins, settings, updatedAt } = await getPageData();
   const base = siteUrl(settings?.siteUrl);
-  const paths = [...PATHS, ...cabins.map((c) => `/cabins/${c.slug}`)];
-  return paths.flatMap((path) =>
+  const entries = [
+    ...PATHS.map((path) => ({ path, modified: updatedAt })),
+    ...cabins.map((c) => ({ path: `/cabins/${c.slug}`, modified: c._updatedAt ?? updatedAt })),
+  ];
+  return entries.flatMap(({ path, modified }) =>
     ["en", "ar"].map((lang) => ({
       url: `${base}/${lang}${path}`,
-      lastModified: new Date(),
+      ...(modified ? { lastModified: new Date(modified) } : {}),
       alternates: { languages: { en: `${base}/en${path}`, ar: `${base}/ar${path}` } },
     }))
   );
