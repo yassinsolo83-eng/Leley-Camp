@@ -7,7 +7,9 @@ export function offerDates(offer: Offer, lang: Locale): string {
   if (!offer.startDate || !offer.endDate) return "";
   const locale = lang === "ar" ? "ar-EG-u-nu-latn" : "en-GB";
   const fmt = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-  return fmt.formatRange(new Date(`${offer.startDate}T00:00:00Z`), new Date(`${offer.endDate}T00:00:00Z`));
+  const range = fmt.formatRange(new Date(`${offer.startDate}T00:00:00Z`), new Date(`${offer.endDate}T00:00:00Z`));
+  // In Arabic, keep "4–6" reading left to right (otherwise it shows as "6–4").
+  return lang === "ar" ? range.replace(/(\d+)\s*([–-])\s*(\d+)/g, "\u2066$1$2$3\u2069") : range;
 }
 
 /** Price lines for the pop-up and moving bar — both guest types when they differ. Empty when prices are hidden. */

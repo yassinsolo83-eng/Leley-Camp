@@ -1,4 +1,5 @@
 import { defineField, defineType } from "sanity";
+import { OfferSocialImages } from "../components/OfferSocialImages";
 
 export const offer = defineType({
   name: "offer",
@@ -35,6 +36,11 @@ export const offer = defineType({
       description: "Text in the moving bar at the top of the site. Leave empty to use the offer title." }),
     defineField({ name: "order", title: "Order", type: "number", initialValue: 10,
       description: "Lower numbers show first. The first offer is the one in the pop-up." }),
+    defineField({
+      name: "socialImages", title: "Images for Facebook & Instagram", type: "string", readOnly: true,
+      description: "Ready-sized images of this offer — download them and post them as they are.",
+      components: { field: OfferSocialImages },
+    }),
   ],
   orderings: [{ title: "Order", name: "order", by: [{ field: "order", direction: "asc" }] }],
   preview: {
