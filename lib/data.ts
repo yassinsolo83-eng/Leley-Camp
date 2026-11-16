@@ -68,7 +68,8 @@ export async function pageMetadata(lang: Locale, path: string, header?: PageHead
     tr(settings?.metaDescription, lang) ||
     tr(home?.hero?.subtitle, lang) ||
     `${name} in Nuweiba, South Sinai, Egypt. See the cabins, prices and experiences, and book directly on WhatsApp.`;
-  const og = imageUrl(header?.image) || imageUrl(settings?.ogImage) || `${base}/images/og-image.jpg`;
+  // Every page shares the same link preview: the sharing image from Site settings, else the logo card.
+  const og = imageUrl(settings?.ogImage) || `${base}/images/og-image.jpg`;
   const url = localePath(lang, path);
 
   return {
