@@ -23,6 +23,10 @@ export const structure: StructureResolver = (S) =>
               .defaultOrdering([{ field: "submittedAt", direction: "desc" }])),
         ])
       ),
+      S.listItem().title("Offers").id("offers").child(
+        S.documentTypeList("offer").title("Offers")
+          .defaultOrdering([{ field: "order", direction: "asc" }])
+      ),
       S.listItem().title("Promo codes").id("promoCodes").child(
         S.documentTypeList("promoCode").title("Promo codes")
           .defaultOrdering([{ field: "_createdAt", direction: "desc" }])

@@ -10,11 +10,12 @@ import { customer } from "./customer";
 import { legalSection, legalPages } from "./legal";
 import { visitorCounter } from "./visitorCounter";
 import { blockedDate } from "./blockedDate";
+import { offer } from "./offer";
 
 export const schemaTypes = [
   localeString, localeText, sectionHeading, pageHeader, legalSection,
   siteSettings, homePage, pages, legalPages, interfaceText, visitorCounter,
-  cabin, activity, pricePlan, review, inquiry, promoCode, customer, blockedDate,
+  cabin, activity, pricePlan, review, inquiry, promoCode, customer, blockedDate, offer,
 ];
 
 export const SINGLETONS = ["siteSettings", "homePage", "pages", "legalPages", "interfaceText", "visitorCounter"];

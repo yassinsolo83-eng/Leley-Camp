@@ -135,6 +135,13 @@ export const DEFAULT_LABELS = {
   navPrivacy: "Privacy Policy",
   navTerms: "Terms & Conditions",
   legalUpdated: "Last updated",
+  navOffers: "Offers",
+  offerBadge: "Special offer",
+  offerView: "View offer",
+  offerBook: "Book this offer",
+  offerDates: "Dates",
+  offerSelected: "Offer selected",
+  offersEmpty: "There are no offers right now. Check back soon.",
 };
 
 export type LabelKey = keyof typeof DEFAULT_LABELS;

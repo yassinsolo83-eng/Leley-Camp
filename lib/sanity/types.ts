@@ -32,6 +32,8 @@ export type SiteSettings = {
   ogImage?: SanityImage;
   gaId?: string;
   showPrices?: boolean;
+  offersEnabled?: boolean;
+  multipleOffers?: boolean;
 };
 
 export type PageHeader = { title?: Localized; intro?: Localized; image?: SanityImage; seoTitle?: Localized; seoDescription?: Localized };
@@ -67,6 +69,7 @@ export type Pages = {
   formHeading?: SectionHeading;
   about?: PageHeader;
   contactHeading?: SectionHeading;
+  offers?: PageHeader;
 };
 
 export type BlockedRange = { from?: string; to?: string; note?: string };
@@ -110,6 +113,21 @@ export type Review = {
   date?: string;
 };
 
+export type Offer = {
+  _id: string;
+  title?: Localized;
+  description?: Localized;
+  image?: SanityImage;
+  startDate?: string;
+  endDate?: string;
+  priceEgyptian?: number;
+  priceForeigner?: number;
+  currency?: string;
+  unit?: Localized;
+  tickerText?: Localized;
+  planName?: Localized;
+};
+
 export type Labels = Record<string, Localized>;
 
 export type LegalSection = { _key: string; heading?: Localized; body?: Localized };
@@ -133,4 +151,5 @@ export type PageData = {
   prices: PricePlan[];
   reviews: Review[];
   updatedAt: string | null;
+  offers: Offer[];
 };

@@ -11,6 +11,7 @@ export const pages = defineType({
     { name: "tour", title: "360° tour" },
     { name: "booking", title: "Prices & Booking" },
     { name: "about", title: "About" },
+    { name: "offers", title: "Offers" },
   ],
   fields: [
     defineField({ name: "cabins", title: "Cabins page", type: "pageHeader", group: "cabins" }),
@@ -24,6 +25,7 @@ export const pages = defineType({
     defineField({ name: "formHeading", title: "Booking form heading", type: "sectionHeading", group: "booking" }),
     defineField({ name: "about", title: "About page", type: "pageHeader", group: "about" }),
     defineField({ name: "contactHeading", title: "Contact heading", type: "sectionHeading", group: "about" }),
+    defineField({ name: "offers", title: "Offers page", type: "pageHeader", group: "offers" }),
   ],
   preview: { prepare: () => ({ title: "Other pages" }) },
 });

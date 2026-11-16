@@ -8,6 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl(settings?.siteUrl);
   const entries = [
     ...PATHS.map((path) => ({ path, modified: updatedAt })),
+    ...(settings?.offersEnabled ? [{ path: "/offers", modified: updatedAt }] : []),
     ...cabins.map((c) => ({ path: `/cabins/${c.slug}`, modified: c._updatedAt ?? updatedAt })),
   ];
   return entries.flatMap(({ path, modified }) =>

@@ -12,9 +12,16 @@ import AvailabilityCalendar from "./AvailabilityCalendar";
 type BlockedRange = { from?: string; to?: string };
 type Option = { value: string; label: string; slug?: string; priceEgyptian?: number; priceForeigner?: number; currency?: string; unit?: string; guestsIncluded?: number; blockedDates?: BlockedRange[] };
 
+// An offer from the Offers page: "Book this offer" links arrive as /booking?offer=<id>#reserve.
+export type OfferOption = {
+  id: string; title: string; titleEn: string; plan: string; checkIn: string; checkOut: string; dates: string;
+  priceEgyptian?: number; priceForeigner?: number; currency?: string; unit?: string;
+};
+
 type Props = {
   cabins: Option[];
   plans: Option[];
+  offers?: OfferOption[];
   whatsappNumber?: string;
   lang: Locale;
   dict: Dictionary;
@@ -66,7 +73,7 @@ function today() {
 
 const DEFAULT_WHATSAPP = "201274057142";
 
-export default function ReserveForm({ cabins, plans, whatsappNumber: whatsappFromCms, lang, dict, showPrices = true }: Props) {
+export default function ReserveForm({ cabins, plans, offers = [], whatsappNumber: whatsappFromCms, lang, dict, showPrices = true }: Props) {
   const whatsappNumber = whatsappFromCms || DEFAULT_WHATSAPP;
   const [auth, setAuth] = useState<Auth>({ state: "checking" });
   const [loginEmail, setLoginEmail] = useState("");
@@ -85,6 +92,7 @@ export default function ReserveForm({ cabins, plans, whatsappNumber: whatsappFro
   const [promoStatus, setPromoStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
   const [promoResult, setPromoResult] = useState<PromoResult | null>(null);
   const [planJustChosen, setPlanJustChosen] = useState(false);
+  const [offerId, setOfferId] = useState("");
 
   // Who (if anyone) is signed in, and whether they already have a request in flight —
   // booking requires signing in first, and only one active request per customer.
@@ -203,6 +211,19 @@ export default function ReserveForm({ cabins, plans, whatsappNumber: whatsappFro
     return () => clearTimeout(t);
   }, [planJustChosen]);
 
+  // "Book this offer" fills in the offer's package and dates.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("offer");
+    const match = id && offers.find((o) => o.id === id);
+    if (!match) return;
+    applyPlan(match.plan);
+    // An offer that already started can only be booked from today.
+    setFields((f) => ({ ...f, checkIn: match.checkIn < today() ? today() : match.checkIn, checkOut: match.checkOut }));
+    setOfferId(match.id);
+    setPlanJustChosen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offers]);
+
   // "Book this cabin" links arrive as /booking?cabin=<slug>#reserve.
   useEffect(() => {
     const slug = new URLSearchParams(window.location.search).get("cabin");
@@ -223,9 +244,14 @@ export default function ReserveForm({ cabins, plans, whatsappNumber: whatsappFro
   }
 
   const selectedPlan = plans.find((p) => p.value === fields.plan);
-  const selectedPlanPrice = selectedPlan
-    ? (fields.guestType === "foreigner" ? selectedPlan.priceForeigner ?? selectedPlan.priceEgyptian : selectedPlan.priceEgyptian)
+  // The offer stays applied only while its package is the one selected.
+  const pickedOffer = offers.find((o) => o.id === offerId);
+  const activeOffer = pickedOffer && pickedOffer.plan === fields.plan ? pickedOffer : undefined;
+  const priced = activeOffer || selectedPlan;
+  const selectedPlanPrice = priced
+    ? (fields.guestType === "foreigner" ? priced.priceForeigner ?? priced.priceEgyptian : priced.priceEgyptian)
     : undefined;
+  const planForRecord = (f: Fields) => (activeOffer && f.plan ? `${f.plan} — Offer: ${activeOffer.titleEn}` : f.plan);
 
   function summary(f: Fields) {
     const label = (list: Option[], value: string) => list.find((o) => o.value === value)?.label || value;
@@ -237,6 +263,7 @@ export default function ReserveForm({ cabins, plans, whatsappNumber: whatsappFro
       `${dict.formGuests}: ${f.guests}`,
       f.cabin && `${dict.formCabin}: ${label(cabins, f.cabin)}`,
       f.plan && `${dict.formPlan}: ${label(plans, f.plan)}`,
+      activeOffer && f.plan && `${dict.offerBadge}: ${activeOffer.title}`,
       `${dict.formGuestType}: ${f.guestType === "foreigner" ? dict.guestForeigner : dict.guestEgyptian}`,
       f.promoCode && `${dict.formPromoCode}: ${f.promoCode}`,
       f.message && f.message,
@@ -279,9 +306,10 @@ export default function ReserveForm({ cabins, plans, whatsappNumber: whatsappFro
         body: JSON.stringify({
           ...fields,
           phone: fullPhone(fields),
+          plan: planForRecord(fields),
           planPrice: selectedPlanPrice,
-          planCurrency: selectedPlan?.currency,
-          planUnit: selectedPlan?.unit,
+          planCurrency: priced?.currency,
+          planUnit: priced?.unit,
           language: lang,
         }),
       });
@@ -305,6 +333,7 @@ export default function ReserveForm({ cabins, plans, whatsappNumber: whatsappFro
       setSentSummary(finishedSummary);
       setStatus("sent");
       setFields((f) => ({ ...EMPTY, phoneCountry: f.phoneCountry }));
+      setOfferId("");
       // Every saved request also goes straight to WhatsApp with the same details. If the
       // browser refused the tab, the button under the success message does the same.
       const waLink = whatsappLink(whatsappNumber, finishedSummary);
@@ -321,6 +350,7 @@ export default function ReserveForm({ cabins, plans, whatsappNumber: whatsappFro
   const wa = sentSummary ? whatsappLink(whatsappNumber, sentSummary) : "";
   const clearPlan = () => {
     setFields((f) => ({ ...f, plan: "" }));
+    setOfferId("");
     setPlanJustChosen(false);
   };
 
@@ -410,11 +440,12 @@ export default function ReserveForm({ cabins, plans, whatsappNumber: whatsappFro
           {selectedPlan && (
             <div className={`plan-confirm${planJustChosen ? " pulse" : ""}`}>
               <div>
-                <p className="plan-confirm-label">{dict.formPlanSelected}</p>
-                <p className="plan-confirm-name">{selectedPlan.label}</p>
+                <p className="plan-confirm-label">{activeOffer ? dict.offerSelected : dict.formPlanSelected}</p>
+                <p className="plan-confirm-name">{activeOffer ? `${activeOffer.title} · ${selectedPlan.label}` : selectedPlan.label}</p>
+                {activeOffer?.dates && <p className="plan-confirm-price">{activeOffer.dates}</p>}
                 {showPrices && !!selectedPlanPrice && (
                   <p className="plan-confirm-price">
-                    {formatNumber(selectedPlanPrice)} {selectedPlan.currency} {selectedPlan.unit}
+                    {formatNumber(selectedPlanPrice)} {priced?.currency} {priced?.unit}
                   </p>
                 )}
               </div>

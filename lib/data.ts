@@ -8,7 +8,9 @@ import { imageUrl } from "./sanity/image";
 import type { Locale, PageHeader } from "./sanity/types";
 
 export const getPageData = cache(async (): Promise<PageData> => {
-  const data = await sanityFetch<Partial<PageData>>(pageQuery);
+  // Offers hide by themselves once their last day has passed (Cairo date).
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Cairo" });
+  const data = await sanityFetch<Partial<PageData>>(pageQuery, { today });
   return {
     settings: data?.settings ?? null,
     home: data?.home ?? null,
@@ -20,6 +22,7 @@ export const getPageData = cache(async (): Promise<PageData> => {
     prices: data?.prices ?? [],
     reviews: data?.reviews ?? [],
     updatedAt: data?.updatedAt ?? null,
+    offers: data?.offers ?? [],
   };
 });
 
@@ -29,6 +32,12 @@ export function siteUrl(fromSettings?: string) {
 
 export const FALLBACK = { name: "Leley Camp", logo: "/images/logo.jpg", hero: "/images/hero.jpg", about: "/images/camp-exterior.jpg" };
 
+
+/** Offers to show right now: none while the Offers page is closed, only the first unless multiple offers are allowed. */
+export function visibleOffers(data: Pick<PageData, "settings" | "offers">) {
+  if (!data.settings?.offersEnabled) return [];
+  return data.settings.multipleOffers ? data.offers : data.offers.slice(0, 1);
+}
 
 /** Everything most pages need: content, labels in the right language, and shared links. */
 export async function getContext(lang: Locale) {

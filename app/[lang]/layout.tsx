@@ -1,14 +1,16 @@
 import { notFound } from "next/navigation";
 import Script from "next/script";
 import type { Viewport } from "next";
-import { LOCALES, isLocale, otherLocale } from "@/lib/i18n";
-import { getContext } from "@/lib/data";
+import { LOCALES, isLocale, localePath, otherLocale } from "@/lib/i18n";
+import { getContext, visibleOffers } from "@/lib/data";
+import { promoOffers } from "@/lib/offers";
 import { navItems } from "@/lib/nav";
 import TopBar from "@/components/TopBar";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 import SocialSidebar from "@/components/SocialSidebar";
+import OfferPromo from "@/components/OfferPromo";
 import "../globals.css";
 
 export const viewport: Viewport = { themeColor: "#0F3A4A" };
@@ -24,6 +26,7 @@ export default async function LangLayout({ children, params }: LayoutProps<"/[la
   const ctx = await getContext(lang);
   const other = otherLocale(lang);
   const nav = navItems(lang, ctx.dict);
+  const offers = promoOffers(visibleOffers(ctx), lang, ctx.dict, ctx.settings?.showPrices !== false);
   const gaId = ctx.settings?.gaId?.trim().replace(/[^A-Z0-9-]/gi, "");
 
   return (
@@ -33,6 +36,14 @@ export default async function LangLayout({ children, params }: LayoutProps<"/[la
             where the rug weaves in and the panel lifts to reveal the hero. */}
         <a className="skip-link" href="#main">{ctx.dict.skipToContent}</a>
         <div className="site-top">
+          <OfferPromo
+            offers={offers}
+            offersHref={localePath(lang, "/offers")}
+            homeHref={localePath(lang, "/")}
+            badge={ctx.dict.offerBadge}
+            viewLabel={ctx.dict.offerView}
+            closeLabel={ctx.dict.close}
+          />
           <TopBar
             facebookUrl={ctx.settings?.facebookUrl}
             instagramUrl={ctx.settings?.instagramUrl}

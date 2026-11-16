@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { isLocale, tr } from "@/lib/i18n";
-import { getContext, getPageData, pageMetadata } from "@/lib/data";
+import { getContext, getPageData, pageMetadata, visibleOffers } from "@/lib/data";
+import { offerDates } from "@/lib/offers";
 import PageHero from "@/components/PageHero";
 import SectionHeading from "@/components/SectionHeading";
 import PricePlans from "@/components/PricePlans";
@@ -46,6 +47,13 @@ export default async function BookingPage({ params }: PageProps<"/[lang]/booking
             plans={prices
               .map((p) => ({ value: tr(p.name, "en"), label: tr(p.name, lang), priceEgyptian: p.priceEgyptian, priceForeigner: p.priceForeigner, currency: p.currency, unit: tr(p.unit, lang), guestsIncluded: p.guestsIncluded }))
               .filter((o) => o.value)}
+            offers={visibleOffers(ctx)
+              .map((o) => ({
+                id: o._id, title: tr(o.title, lang), titleEn: tr(o.title, "en"), plan: tr(o.planName, "en"),
+                checkIn: o.startDate || "", checkOut: o.endDate || "", dates: offerDates(o, lang),
+                priceEgyptian: o.priceEgyptian, priceForeigner: o.priceForeigner, currency: o.currency, unit: tr(o.unit, lang),
+              }))
+              .filter((o) => o.plan)}
             whatsappNumber={s?.whatsappNumber}
             lang={lang}
             dict={dict}

@@ -8,12 +8,21 @@ export const siteSettings = defineType({
     { name: "contact", title: "Contact & links", default: true },
     { name: "brand", title: "Brand" },
     { name: "booking", title: "Booking" },
+    { name: "offers", title: "Offers" },
     { name: "seo", title: "SEO & sharing" },
   ],
   fields: [
     defineField({
       name: "showPrices", title: "Show prices on the website", type: "boolean", group: "booking", initialValue: true,
       description: "Turn off to hide all prices from guests — packages still show, just without the price.",
+    }),
+    defineField({
+      name: "offersEnabled", title: "Offers page is open", type: "boolean", group: "offers", initialValue: false,
+      description: "Turn on to open the Offers page. While it's off, the page is closed and the offer pop-up and moving bar don't show.",
+    }),
+    defineField({
+      name: "multipleOffers", title: "Allow more than one offer at a time", type: "boolean", group: "offers", initialValue: false,
+      description: "Off: only the first active offer shows. On: every active offer shows on the Offers page and in the moving bar.",
     }),
     defineField({ name: "whatsappNumber", title: "WhatsApp number", type: "string", group: "contact",
       description: "International format, digits only. Example: 201274057142",
