@@ -1,13 +1,14 @@
 import type { MetadataRoute } from "next";
 import { getPageData, siteUrl } from "@/lib/data";
 
-const PATHS = ["", "/cabins", "/experiences", "/menu", "/gallery", "/tour", "/booking", "/about"];
+const PATHS = ["", "/cabins", "/experiences", "/gallery", "/tour", "/booking", "/about"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { cabins, settings, updatedAt } = await getPageData();
+  const { cabins, settings, updatedAt, menu } = await getPageData();
   const base = siteUrl(settings?.siteUrl);
   const entries = [
     ...PATHS.map((path) => ({ path, modified: updatedAt })),
+    ...(menu?.showMenu !== false ? [{ path: "/menu", modified: updatedAt }] : []),
     ...(settings?.offersEnabled ? [{ path: "/offers", modified: updatedAt }] : []),
     ...cabins.map((c) => ({ path: `/cabins/${c.slug}`, modified: c._updatedAt ?? updatedAt })),
   ];

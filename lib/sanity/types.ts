@@ -140,10 +140,28 @@ export type LegalPages = {
   termsSections?: LegalSection[];
 };
 
+export type MenuDoc = {
+  showMenu?: boolean;
+  title?: Localized;
+  place?: Localized;
+  hint?: Localized;
+  currency?: Localized;
+  whatsappNumber?: string;
+  sections?: {
+    _key: string;
+    title?: Localized;
+    kicker?: Localized;
+    art?: string;
+    note?: Localized;
+    items?: { _key: string; name?: Localized; price?: number | null; priceText?: string; note?: Localized; hidden?: boolean }[];
+  }[];
+};
+
 export type PageData = {
   settings: SiteSettings | null;
   home: HomePage | null;
   pages: Pages | null;
+  menu: MenuDoc | null;
   legal: LegalPages | null;
   labels: Labels | null;
   cabins: Cabin[];

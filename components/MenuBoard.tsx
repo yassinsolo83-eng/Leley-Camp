@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatNumber, whatsappLink } from "@/lib/i18n";
-import { MENU_GROUPS, MENU_TEXT, type MenuItem } from "@/lib/menu";
+import { MENU_TEXT, type MenuViewGroup, type MenuViewItem } from "@/lib/menu";
 import type { Locale } from "@/lib/sanity/types";
 import { CloseIcon, WhatsAppIcon } from "./icons";
 
@@ -16,23 +16,23 @@ const ART = {
   cone: { src: "/menu/cone.webp", w: 102, h: 240 },
 } as const;
 
-type Line = { item: MenuItem; qty: number };
+type Line = { item: MenuViewItem; qty: number };
 
-export default function MenuBoard({ lang, whatsappNumber }: { lang: Locale; whatsappNumber: string }) {
-  const t = MENU_TEXT[lang];
+export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { lang: Locale; groups: MenuViewGroup[]; currency: string; whatsappNumber: string }) {
+  const t = { ...MENU_TEXT[lang], currency };
   const [cart, setCart] = useState<Record<string, number>>({});
   const [open, setOpen] = useState(false);
   const [notes, setNotes] = useState("");
-  const [active, setActive] = useState(MENU_GROUPS[0].id);
+  const [active, setActive] = useState(groups[0]?.id ?? "");
   const chipsRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
-  const name = (i: { en: string; ar: string }) => (lang === "ar" ? i.ar : i.en);
+  const name = (i: { name: string }) => i.name;
   const byId = useMemo(() => {
-    const map = new Map<string, MenuItem>();
-    MENU_GROUPS.forEach((g) => g.items.forEach((i) => map.set(i.id, i)));
+    const map = new Map<string, MenuViewItem>();
+    groups.forEach((g) => g.items.forEach((i) => map.set(i.id, i)));
     return map;
-  }, []);
+  }, [groups]);
 
   const lines: Line[] = Object.entries(cart)
     .filter(([, qty]) => qty > 0)
@@ -51,7 +51,7 @@ export default function MenuBoard({ lang, whatsappNumber }: { lang: Locale; what
       return copy;
     });
 
-  const priceLabel = (i: MenuItem) => (i.priceText ? i.priceText : i.price !== null ? formatNumber(i.price) : "");
+  const priceLabel = (i: MenuViewItem) => (i.priceText ? i.priceText : i.price !== null ? formatNumber(i.price) : "");
 
   // WhatsApp message in the page language, listing every item with quantity and price.
   const message = (() => {
@@ -81,7 +81,7 @@ export default function MenuBoard({ lang, whatsappNumber }: { lang: Locale; what
 
   // Highlight the chip of the section currently on screen.
   useEffect(() => {
-    const sections = MENU_GROUPS.map((g) => document.getElementById(g.id)).filter(Boolean) as HTMLElement[];
+    const sections = groups.map((g) => document.getElementById(g.id)).filter(Boolean) as HTMLElement[];
     const io = new IntersectionObserver(
       (entries) => {
         const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
@@ -91,7 +91,7 @@ export default function MenuBoard({ lang, whatsappNumber }: { lang: Locale; what
     );
     sections.forEach((s) => io.observe(s));
     return () => io.disconnect();
-  }, []);
+  }, [groups]);
 
   // Keep the active chip visible inside the chip bar (without scrolling the page).
   useEffect(() => {
@@ -122,31 +122,31 @@ export default function MenuBoard({ lang, whatsappNumber }: { lang: Locale; what
     <>
       <div className="menu-chips-wrap">
         <div className="menu-chips" ref={chipsRef} role="navigation" aria-label={t.chips}>
-          {MENU_GROUPS.map((g) => (
+          {groups.map((g) => (
             <a key={g.id} href={`#${g.id}`} data-chip={g.id} className={`menu-chip${active === g.id ? " active" : ""}`} aria-current={active === g.id ? "true" : undefined}>
-              {name(g)}
+              {g.title}
             </a>
           ))}
         </div>
       </div>
 
       <div className="container menu-groups">
-        {MENU_GROUPS.map((g) => {
+        {groups.map((g) => {
           const art = g.art ? ART[g.art] : null;
-          const note = lang === "ar" ? g.noteAr : g.noteEn;
-          const kicker = lang === "ar" ? g.kickerAr : g.kickerEn;
+          const note = g.note;
+          const kicker = g.kicker;
           return (
             <section key={g.id} id={g.id} className="menu-section" aria-labelledby={`${g.id}-title`}>
               {kicker && <h2 className="menu-kicker display">{kicker}</h2>}
               <div className={`menu-card${art ? " has-art" : ""}`}>
-                <h3 id={`${g.id}-title`} className="menu-card-title">{name(g)}</h3>
+                <h3 id={`${g.id}-title`} className="menu-card-title">{g.title}</h3>
                 {art && <Image className="menu-art" src={art.src} width={art.w} height={art.h} alt="" unoptimized />}
                 {note && <p className="menu-note">{note}</p>}
                 {g.items.length > 0 && (
                   <ul className="menu-list">
                     {g.items.map((item) => {
                       const qty = cart[item.id] ?? 0;
-                      const itemNote = lang === "ar" ? item.noteAr : item.noteEn;
+                      const itemNote = item.note;
                       return (
                         <li key={item.id} className="menu-item">
                           <div className="menu-item-text">

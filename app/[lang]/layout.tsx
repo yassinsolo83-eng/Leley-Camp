@@ -25,7 +25,7 @@ export default async function LangLayout({ children, params }: LayoutProps<"/[la
 
   const ctx = await getContext(lang);
   const other = otherLocale(lang);
-  const nav = navItems(lang, ctx.dict);
+  const nav = navItems(lang, ctx.dict, ctx.menu?.showMenu !== false);
   const offers = promoOffers(visibleOffers(ctx), lang, ctx.dict, ctx.settings?.showPrices !== false);
   const gaId = ctx.settings?.gaId?.trim().replace(/[^A-Z0-9-]/gi, "");
 

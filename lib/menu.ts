@@ -1,4 +1,4 @@
-import type { Locale } from "./sanity/types";
+import type { Locale, Localized, MenuDoc } from "./sanity/types";
 
 export type MenuItem = {
   id: string;
@@ -233,3 +233,61 @@ export const MENU_TEXT = {
 } satisfies Record<Locale, Record<string, unknown>>;
 
 export type MenuText = (typeof MENU_TEXT)["en"] | (typeof MENU_TEXT)["ar"];
+
+/** What the menu page and the board need, already in the page language. */
+export type MenuViewItem = { id: string; name: string; price: number | null; priceText?: string; note?: string };
+export type MenuViewGroup = { id: string; title: string; kicker?: string; art?: MenuGroup["art"]; note?: string; items: MenuViewItem[] };
+
+const ART_KEYS = ["pizza", "plate", "glass", "moka", "cone", "fish"];
+
+/**
+ * The Studio's Menu document is the source of truth. Until it has been published once,
+ * the built-in menu above is shown, so the page never goes empty.
+ */
+export function resolveMenu(doc: MenuDoc | null | undefined, lang: Locale) {
+  const t = MENU_TEXT[lang];
+  const pick = (v: Localized, fallback = "") => ((v && (v[lang] || v.en)) || fallback).trim();
+  const hasDoc = Boolean(doc?.sections);
+
+  const groups: MenuViewGroup[] = hasDoc
+    ? (doc!.sections ?? []).map((s) => ({
+        id: `sec-${s._key}`,
+        title: pick(s.title),
+        kicker: pick(s.kicker) || undefined,
+        art: ART_KEYS.includes(s.art ?? "") ? (s.art as MenuGroup["art"]) : undefined,
+        note: pick(s.note) || undefined,
+        items: (s.items ?? [])
+          .filter((i) => !i.hidden && pick(i.name))
+          .map((i) => ({
+            id: i._key,
+            name: pick(i.name),
+            price: typeof i.price === "number" ? i.price : null,
+            priceText: i.priceText?.trim() || undefined,
+            note: pick(i.note) || undefined,
+          })),
+      }))
+    : MENU_GROUPS.map((g) => ({
+        id: g.id,
+        title: lang === "ar" ? g.ar : g.en,
+        kicker: (lang === "ar" ? g.kickerAr : g.kickerEn) || undefined,
+        art: g.art,
+        note: (lang === "ar" ? g.noteAr : g.noteEn) || undefined,
+        items: g.items.map((i) => ({
+          id: i.id,
+          name: lang === "ar" ? i.ar : i.en,
+          price: i.price,
+          priceText: i.priceText,
+          note: (lang === "ar" ? i.noteAr : i.noteEn) || undefined,
+        })),
+      }));
+
+  return {
+    open: doc?.showMenu !== false,
+    groups: groups.filter((g) => g.title && (g.items.length > 0 || g.note)),
+    title: pick(doc?.title, t.title),
+    place: pick(doc?.place, t.place),
+    hint: pick(doc?.hint, t.hint),
+    currency: pick(doc?.currency, t.currency),
+    whatsappNumber: doc?.whatsappNumber?.trim() || "",
+  };
+}

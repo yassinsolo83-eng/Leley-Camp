@@ -43,6 +43,7 @@ export const structure: StructureResolver = (S) =>
           )
       ),
       S.divider(),
+      singleton(S, "menu", "Menu"),
       singleton(S, "homePage", "Home page"),
       singleton(S, "pages", "Other pages"),
       singleton(S, "legalPages", "Privacy & Terms"),
