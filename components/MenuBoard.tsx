@@ -23,6 +23,10 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
   const [cart, setCart] = useState<Record<string, number>>({});
   const [open, setOpen] = useState(false);
   const [notes, setNotes] = useState("");
+  const [guestName, setGuestName] = useState("");
+  const [cabin, setCabin] = useState("");
+  const [nameMissing, setNameMissing] = useState(false);
+  const nameRef = useRef<HTMLInputElement>(null);
   const [active, setActive] = useState(groups[0]?.id ?? "");
   const chipsRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -61,9 +65,11 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
     });
     const totalLine = `${t.msgTotal}: ${formatNumber(total)} ${t.currency}${hasUnpriced ? ` (${t.msgPlus})` : ""}`;
     const noteLine = notes.trim() ? `\n${t.msgNotes}: ${notes.trim()}` : "";
-    return `${t.greeting}\n\n${rows.join("\n")}\n\n${totalLine}${noteLine}\n\n${t.msgName} `;
+    const who = `${t.msgName}: ${guestName.trim()}${cabin.trim() ? `\n${t.msgCabin}: ${cabin.trim()}` : ""}`;
+    return `${t.greeting}\n\n${rows.join("\n")}\n\n${totalLine}${noteLine}\n\n${who}`;
   })();
   const waHref = whatsappLink(whatsappNumber, message);
+  const nameOk = guestName.trim().length > 0;
 
   // The chip bar sticks right under the site header (its height changes with the offer ticker).
   useEffect(() => {
@@ -209,6 +215,15 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
               ))}
             </ul>
             <label className="menu-notes">
+              <span>{t.yourName}</span>
+              <input ref={nameRef} type="text" value={guestName} onChange={(e) => { setGuestName(e.target.value); setNameMissing(false); }} maxLength={60} autoComplete="name" aria-invalid={nameMissing} />
+              {nameMissing && <span className="menu-error" role="alert">{t.nameRequired}</span>}
+            </label>
+            <label className="menu-notes">
+              <span>{t.cabinNumber}</span>
+              <input type="text" inputMode="numeric" value={cabin} onChange={(e) => setCabin(e.target.value)} maxLength={20} placeholder={t.cabinHint} />
+            </label>
+            <label className="menu-notes">
               <span>{t.notes}</span>
               <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={300} placeholder={t.notesHint} />
             </label>
@@ -217,11 +232,15 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
               <strong>{formatNumber(total)} {t.currency}{hasUnpriced ? " +" : ""}</strong>
             </div>
             {hasUnpriced && <p className="menu-total-note">{t.totalNote}</p>}
-            {waHref && (
+            {waHref && (nameOk ? (
               <a className="menu-send" href={waHref} target="_blank" rel="noopener noreferrer">
                 <WhatsAppIcon size={18} color="#fff" /> {t.send}
               </a>
-            )}
+            ) : (
+              <button type="button" className="menu-send" onClick={() => { setNameMissing(true); nameRef.current?.focus(); }}>
+                <WhatsAppIcon size={18} color="#fff" /> {t.send}
+              </button>
+            ))}
             <button type="button" className="menu-clear" onClick={() => { setCart({}); setNotes(""); setOpen(false); }}>{t.clear}</button>
           </div>
         </div>

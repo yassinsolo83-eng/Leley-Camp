@@ -198,7 +198,12 @@ export const MENU_TEXT = {
     msgTotal: "Total",
     msgPlus: "plus items priced on confirmation",
     msgNotes: "Notes",
-    msgName: "Name / cabin number:",
+    msgName: "Name",
+    msgCabin: "Cabin",
+    yourName: "Your name",
+    cabinNumber: "Cabin number (optional)",
+    cabinHint: "Leave empty if you are not staying in a cabin",
+    nameRequired: "Please enter your name.",
   },
   ar: {
     nav: "المنيو",
@@ -228,7 +233,12 @@ export const MENU_TEXT = {
     msgTotal: "الإجمالي",
     msgPlus: "بالإضافة إلى أصناف يُؤكَّد سعرها",
     msgNotes: "ملاحظات",
-    msgName: "الاسم / رقم الكابينة:",
+    msgName: "الاسم",
+    msgCabin: "الكابينة",
+    yourName: "اسمك",
+    cabinNumber: "رقم الكابينة (اختياري)",
+    cabinHint: "اتركه فارغًا إن لم تكن مقيمًا في كابينة",
+    nameRequired: "من فضلك اكتب اسمك.",
   },
 } satisfies Record<Locale, Record<string, unknown>>;
 

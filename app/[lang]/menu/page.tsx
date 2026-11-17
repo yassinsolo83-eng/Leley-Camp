@@ -39,7 +39,7 @@ export default async function MenuPage({ params }: PageProps<"/[lang]/menu">) {
         <div className="menu-lockup">
           <Image className="menu-candle" src="/menu/candle.webp" width={73} height={200} alt="" unoptimized />
           <span className="menu-rule" aria-hidden="true" />
-          <Image className="menu-logo" src="/menu/logo.webp" width={720} height={920} alt={ctx.campName} priority unoptimized />
+          <Image className="menu-logo" src={ctx.logoUrl} width={340} height={356} alt={ctx.campName} priority />
           <span className="menu-rule" aria-hidden="true" />
           <Image className="menu-candle" src="/menu/candle.webp" width={73} height={200} alt="" unoptimized />
         </div>

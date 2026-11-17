@@ -613,9 +613,9 @@ a:hover .arrow-icon { transform: translateX(3px); }
 }
 .menu-masthead { text-align: center; padding: 36px 18px 26px; }
 .menu-lockup { display: flex; align-items: center; justify-content: center; gap: clamp(8px, 3vw, 28px); max-width: 640px; margin-inline: auto; }
-.menu-logo { width: clamp(150px, 38vw, 230px); height: auto; flex: none; }
-.menu-candle { width: clamp(22px, 6vw, 38px); height: auto; flex: none; align-self: flex-end; margin-bottom: 18%; }
-.menu-rule { flex: 1; height: 1.5px; background: var(--m-indigo); align-self: flex-end; margin-bottom: 18%; }
+.menu-logo { width: clamp(120px, 30vw, 170px); height: auto; flex: none; border-radius: 22px; }
+.menu-candle { width: clamp(22px, 6vw, 38px); height: auto; flex: none; align-self: center; }
+.menu-rule { flex: 1; height: 1.5px; background: var(--m-indigo); align-self: center; }
 .menu-title { margin-top: 18px; font-size: clamp(2rem, 6vw, 2.8rem); color: var(--m-indigo); text-transform: uppercase; letter-spacing: 0.06em; }
 :lang(ar) .menu-title { letter-spacing: 0; text-transform: none; }
 .menu-place { margin-top: 2px; color: var(--m-orange-dark); font-weight: 600; letter-spacing: 0.04em; }
@@ -671,12 +671,14 @@ body:has(.menu-cartbar) .wa-float { bottom: 92px; }
 .menu-sheet-name { font-weight: 500; line-height: 1.4; }
 .menu-sheet-price { font-weight: 600; color: var(--m-indigo); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .menu-notes { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 0.92rem; }
-.menu-notes textarea { font: inherit; font-weight: 400; color: var(--m-ink); background: #fff; border: 1.5px solid var(--m-line); border-radius: 12px; padding: 10px 12px; resize: vertical; }
-.menu-notes textarea:focus-visible { outline: 2px solid var(--m-orange); outline-offset: 1px; }
+.menu-notes input, .menu-notes textarea { font: inherit; font-weight: 400; color: var(--m-ink); background: #fff; border: 1.5px solid var(--m-line); border-radius: 12px; padding: 10px 12px; resize: vertical; }
+.menu-notes input:focus-visible, .menu-notes textarea:focus-visible { outline: 2px solid var(--m-orange); outline-offset: 1px; }
 .menu-total { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.15rem; border-top: 1.5px solid var(--m-indigo); padding-top: 12px; }
 .menu-total strong { color: var(--m-indigo); font-variant-numeric: tabular-nums; }
 .menu-total-note { font-size: 0.85rem; opacity: 0.75; margin-top: -6px; }
-.menu-send { display: flex; align-items: center; justify-content: center; gap: 10px; background: #1FA855; color: #fff; font-weight: 700; padding: 15px 20px; border-radius: 14px; }
+.menu-error { color: #B3261E; font-weight: 500; font-size: 0.88rem; }
+.menu-notes input[aria-invalid="true"] { border-color: #B3261E; }
+.menu-send { border: 0; font: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; background: #1FA855; color: #fff; font-weight: 700; padding: 15px 20px; border-radius: 14px; }
 .menu-send:hover { background: #178a45; }
 .menu-clear { align-self: center; border: 0; background: none; color: var(--m-indigo); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; padding: 4px 8px; }
 
