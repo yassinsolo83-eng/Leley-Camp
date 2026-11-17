@@ -25,6 +25,8 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
   const [notes, setNotes] = useState("");
   const [guestName, setGuestName] = useState("");
   const [cabin, setCabin] = useState("");
+  const [where, setWhere] = useState<"" | "inside" | "outside">("");
+  const [whereMissing, setWhereMissing] = useState(false);
   const [nameMissing, setNameMissing] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const [active, setActive] = useState(groups[0]?.id ?? "");
@@ -65,11 +67,13 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
     });
     const totalLine = `${t.msgTotal}: ${formatNumber(total)} ${t.currency}${hasUnpriced ? ` (${t.msgPlus})` : ""}`;
     const noteLine = notes.trim() ? `\n${t.msgNotes}: ${notes.trim()}` : "";
-    const who = `${t.msgName}: ${guestName.trim()}${cabin.trim() ? `\n${t.msgCabin}: ${cabin.trim()}` : ""}`;
+    const place = where ? `${t.msgWhere}: ${where === "inside" ? t.inside : t.outside}\n` : "";
+    const who = `${place}${t.msgName}: ${guestName.trim()}${where === "inside" && cabin.trim() ? `\n${t.msgCabin}: ${cabin.trim()}` : ""}`;
     return `${t.greeting}\n\n${rows.join("\n")}\n\n${totalLine}${noteLine}\n\n${who}`;
   })();
   const waHref = whatsappLink(whatsappNumber, message);
   const nameOk = guestName.trim().length > 0;
+  const canSend = nameOk && where !== "";
 
   // The chip bar sticks right under the site header (its height changes with the offer ticker).
   useEffect(() => {
@@ -214,15 +218,25 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
                 </li>
               ))}
             </ul>
+            <fieldset className="menu-where">
+              <legend>{t.where}</legend>
+              <div className="menu-where-opts">
+                <button type="button" className="menu-where-opt" aria-pressed={where === "inside"} onClick={() => { setWhere("inside"); setWhereMissing(false); }}>{t.inside}</button>
+                <button type="button" className="menu-where-opt" aria-pressed={where === "outside"} onClick={() => { setWhere("outside"); setWhereMissing(false); }}>{t.outside}</button>
+              </div>
+              {whereMissing && <span className="menu-error" role="alert">{t.whereRequired}</span>}
+            </fieldset>
             <label className="menu-notes">
               <span>{t.yourName}</span>
               <input ref={nameRef} type="text" value={guestName} onChange={(e) => { setGuestName(e.target.value); setNameMissing(false); }} maxLength={60} autoComplete="name" aria-invalid={nameMissing} />
               {nameMissing && <span className="menu-error" role="alert">{t.nameRequired}</span>}
             </label>
-            <label className="menu-notes">
-              <span>{t.cabinNumber}</span>
-              <input type="text" inputMode="numeric" value={cabin} onChange={(e) => setCabin(e.target.value)} maxLength={20} placeholder={t.cabinHint} />
-            </label>
+            {where === "inside" && (
+              <label className="menu-notes">
+                <span>{t.cabinNumber}</span>
+                <input type="text" inputMode="numeric" value={cabin} onChange={(e) => setCabin(e.target.value)} maxLength={20} placeholder={t.cabinHint} />
+              </label>
+            )}
             <label className="menu-notes">
               <span>{t.notes}</span>
               <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={300} placeholder={t.notesHint} />
@@ -232,12 +246,12 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
               <strong>{formatNumber(total)} {t.currency}{hasUnpriced ? " +" : ""}</strong>
             </div>
             {hasUnpriced && <p className="menu-total-note">{t.totalNote}</p>}
-            {waHref && (nameOk ? (
+            {waHref && (canSend ? (
               <a className="menu-send" href={waHref} target="_blank" rel="noopener noreferrer">
                 <WhatsAppIcon size={18} color="#fff" /> {t.send}
               </a>
             ) : (
-              <button type="button" className="menu-send" onClick={() => { setNameMissing(true); nameRef.current?.focus(); }}>
+              <button type="button" className="menu-send" onClick={() => { setWhereMissing(where === ""); setNameMissing(!nameOk); if (!nameOk) nameRef.current?.focus(); }}>
                 <WhatsAppIcon size={18} color="#fff" /> {t.send}
               </button>
             ))}

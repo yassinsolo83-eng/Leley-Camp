@@ -202,8 +202,13 @@ export const MENU_TEXT = {
     msgCabin: "Cabin",
     yourName: "Your name",
     cabinNumber: "Cabin number (optional)",
-    cabinHint: "Leave empty if you are not staying in a cabin",
+    cabinHint: "Leave empty if you are not in a cabin",
     nameRequired: "Please enter your name.",
+    where: "Where are you?",
+    inside: "Inside the camp",
+    outside: "Outside the camp",
+    whereRequired: "Please choose where you are.",
+    msgWhere: "Location",
   },
   ar: {
     nav: "المنيو",
@@ -239,6 +244,11 @@ export const MENU_TEXT = {
     cabinNumber: "رقم الكابينة (اختياري)",
     cabinHint: "اتركه فارغًا إن لم تكن مقيمًا في كابينة",
     nameRequired: "من فضلك اكتب اسمك.",
+    where: "أين أنت؟",
+    inside: "داخل الكامب",
+    outside: "خارج الكامب",
+    whereRequired: "من فضلك اختر مكانك.",
+    msgWhere: "المكان",
   },
 } satisfies Record<Locale, Record<string, unknown>>;
 
