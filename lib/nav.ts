@@ -1,4 +1,5 @@
 import { localePath, type Dictionary } from "./i18n";
+import { MENU_TEXT } from "./menu";
 import type { Locale } from "./sanity/types";
 
 export function navItems(lang: Locale, dict: Dictionary) {
@@ -6,6 +7,7 @@ export function navItems(lang: Locale, dict: Dictionary) {
     { href: localePath(lang, "/"), label: dict.navHome },
     { href: localePath(lang, "/cabins"), label: dict.navCabins },
     { href: localePath(lang, "/experiences"), label: dict.navExperiences },
+    { href: localePath(lang, "/menu"), label: MENU_TEXT[lang].nav },
     { href: localePath(lang, "/gallery"), label: dict.navGallery },
     { href: localePath(lang, "/tour"), label: dict.navTour },
     { href: localePath(lang, "/booking"), label: dict.navBooking },
