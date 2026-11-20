@@ -55,7 +55,7 @@ const FONT_FILES: { family: string; file: string; weight: string; range: string 
 let fontsReady: Promise<void> | null = null;
 
 /** Loads the site's fonts (served from /public/fonts) once per page. */
-export function loadSocialFonts(): Promise<void> {
+function loadSocialFonts(): Promise<void> {
   if (!fontsReady) {
     fontsReady = Promise.all(
       FONT_FILES.map(async ({ family, file, weight, range }) => {

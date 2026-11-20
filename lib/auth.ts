@@ -72,7 +72,7 @@ export function createSessionToken(session: Session): string {
   return signedToken({ ...session, exp: Date.now() + SESSION_TTL_MS }, getSecret("AUTH_SESSION_SECRET"));
 }
 
-export function verifySessionToken(token: string): Session | null {
+function verifySessionToken(token: string): Session | null {
   const data = verifySignedToken<Session & { exp: number }>(token, getSecret("AUTH_SESSION_SECRET"));
   if (!data || Date.now() > data.exp) return null;
   return { email: data.email, customerId: data.customerId };
