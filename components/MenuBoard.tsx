@@ -20,7 +20,7 @@ type Line = { item: MenuViewItem; qty: number };
 
 const GUEST_KEY = "leley-menu-guest";
 
-export default function MenuBoard({ lang, groups, currency, whatsappNumber, digits }: { lang: Locale; groups: MenuViewGroup[]; currency: string; whatsappNumber: string; digits: MenuDigits }) {
+export default function MenuBoard({ lang, groups, currency, whatsappNumber, digits, cabins }: { lang: Locale; groups: MenuViewGroup[]; currency: string; whatsappNumber: string; digits: MenuDigits; cabins: string[] }) {
   const t = { ...MENU_TEXT[lang], currency };
   const [cart, setCart] = useState<Record<string, number>>({});
   const [open, setOpen] = useState(false);
@@ -32,6 +32,7 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber, digi
   const [whereMissing, setWhereMissing] = useState(false);
   const [nameMissing, setNameMissing] = useState(false);
   const [phoneMissing, setPhoneMissing] = useState(false);
+  const [cabinMissing, setCabinMissing] = useState(false);
   // The guest's details are asked once, before the menu is shown, and kept for the visit.
   const [gate, setGate] = useState(true);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -39,7 +40,7 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber, digi
   useEffect(() => {
     try {
       const saved = JSON.parse(sessionStorage.getItem(GUEST_KEY) || "null");
-      if (saved?.name && saved?.phone && saved?.where) {
+      if (saved?.name && saved?.phone && saved?.where && (saved.where !== "inside" || saved.cabin)) {
         setGuestName(saved.name);
         setPhone(saved.phone);
         setWhere(saved.where);
@@ -62,7 +63,9 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber, digi
     setNameMissing(guestName.trim() === "");
     setPhoneMissing(!phoneOk);
     setWhereMissing(where === "");
-    if (guestName.trim() === "" || !phoneOk || where === "") return;
+    const noCabin = where === "inside" && cabin.trim() === "";
+    setCabinMissing(noCabin);
+    if (guestName.trim() === "" || !phoneOk || where === "" || noCabin) return;
     try {
       sessionStorage.setItem(GUEST_KEY, JSON.stringify({ name: guestName.trim(), phone: phone.trim(), where, cabin: cabin.trim() }));
     } catch {}
@@ -305,7 +308,15 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber, digi
             {where === "inside" && (
               <label className="menu-notes">
                 <span>{t.cabinNumber}</span>
-                <input type="text" inputMode="numeric" value={cabin} onChange={(e) => setCabin(e.target.value)} maxLength={20} placeholder={t.cabinHint} />
+                {cabins.length > 0 ? (
+                  <select value={cabin} onChange={(e) => { setCabin(e.target.value); setCabinMissing(false); }} aria-invalid={cabinMissing}>
+                    <option value="">{t.cabinHint}</option>
+                    {cabins.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                ) : (
+                  <input type="text" value={cabin} onChange={(e) => { setCabin(e.target.value); setCabinMissing(false); }} maxLength={20} aria-invalid={cabinMissing} />
+                )}
+                {cabinMissing && <span className="menu-error" role="alert">{t.cabinRequired}</span>}
               </label>
             )}
             <button type="button" className="menu-gate-btn" onClick={submitGate}>{t.gateContinue}</button>

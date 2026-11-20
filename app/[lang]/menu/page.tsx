@@ -31,6 +31,8 @@ export default async function MenuPage({ params }: PageProps<"/[lang]/menu">) {
   const menu = resolveMenu(ctx.menu, lang);
   // The Studio's Menu document controls whether the page exists.
   if (!menu.open) notFound();
+  // Cabin names come straight from the Cabins in the Studio, so adding, renaming or removing one updates the menu.
+  const cabins = ctx.cabins.map((c) => c.name?.[lang] || c.name?.en || "").filter(Boolean);
   const whatsappNumber = menu.whatsappNumber || ctx.settings?.whatsappNumber || DEFAULT_WHATSAPP;
 
   return (
@@ -47,7 +49,7 @@ export default async function MenuPage({ params }: PageProps<"/[lang]/menu">) {
         <p className="menu-place">{menu.place}</p>
         <p className="menu-hint">{menu.hint}</p>
       </header>
-      <MenuBoard lang={lang} groups={menu.groups} currency={menu.currency} whatsappNumber={whatsappNumber} digits={menu.digits} />
+      <MenuBoard lang={lang} groups={menu.groups} currency={menu.currency} whatsappNumber={whatsappNumber} digits={menu.digits} cabins={cabins} />
     </div>
   );
 }
