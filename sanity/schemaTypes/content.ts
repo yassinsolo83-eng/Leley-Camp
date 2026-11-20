@@ -1,3 +1,4 @@
+import { BulkImageInput } from "../components/BulkImageInput";
 import { defineArrayMember, defineField, defineType } from "sanity";
 import { STANDARD_AMENITIES } from "../../lib/amenities";
 import { DEFAULT_LABELS } from "../../lib/i18n";
@@ -26,7 +27,7 @@ export const cabin = defineType({
     }),
     defineField({ name: "amenities", title: "Other amenities", type: "array", of: [defineArrayMember({ type: "localeString" })],
       description: "Anything specific to this cabin that isn't in the tick list above." }),
-    defineField({ name: "photos", title: "More photos", type: "array", of: [defineArrayMember({ type: "image", options: { hotspot: true } })] }),
+    defineField({ name: "photos", title: "More photos", type: "array", components: { input: BulkImageInput }, of: [defineArrayMember({ type: "image", options: { hotspot: true } })] }),
     defineField({ name: "seoTitle", title: "Google title (optional)", type: "localeString",
       description: "Shown in Google results and the browser tab. Keep it under 60 characters and include the main keyword. Leave empty to use the cabin name." }),
     defineField({ name: "seoDescription", title: "Google description (optional)", type: "localeText",
