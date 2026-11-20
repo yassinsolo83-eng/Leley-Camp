@@ -47,7 +47,7 @@ export default async function MenuPage({ params }: PageProps<"/[lang]/menu">) {
         <p className="menu-place">{menu.place}</p>
         <p className="menu-hint">{menu.hint}</p>
       </header>
-      <MenuBoard lang={lang} groups={menu.groups} currency={menu.currency} whatsappNumber={whatsappNumber} />
+      <MenuBoard lang={lang} groups={menu.groups} currency={menu.currency} whatsappNumber={whatsappNumber} digits={menu.digits} />
     </div>
   );
 }

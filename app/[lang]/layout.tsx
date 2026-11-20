@@ -5,10 +5,11 @@ import { LOCALES, isLocale, localePath, otherLocale } from "@/lib/i18n";
 import { getContext, visibleOffers } from "@/lib/data";
 import { promoOffers } from "@/lib/offers";
 import { navItems } from "@/lib/nav";
+import { MENU_TEXT } from "@/lib/menu";
 import TopBar from "@/components/TopBar";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
-import WhatsAppFloat from "@/components/WhatsAppFloat";
+import FloatingActions from "@/components/FloatingActions";
 import SocialSidebar from "@/components/SocialSidebar";
 import OfferPromo from "@/components/OfferPromo";
 import "../globals.css";
@@ -64,7 +65,15 @@ export default async function LangLayout({ children, params }: LayoutProps<"/[la
         </div>
         <main id="main">{children}</main>
         <SiteFooter ctx={ctx} nav={nav} />
-        <WhatsAppFloat href={ctx.waUrl} label={ctx.dict.chatWithUs} />
+        <FloatingActions
+          logoUrl={ctx.logoUrl}
+          waUrl={ctx.waUrl}
+          waLabel={ctx.dict.chatWithUs}
+          menuHref={ctx.menu?.showMenu !== false ? localePath(lang, "/menu") : undefined}
+          menuLabel={MENU_TEXT[lang].nav}
+          openLabel={MENU_TEXT[lang].nav}
+          closeLabel={ctx.dict.close}
+        />
         <SocialSidebar facebookUrl={ctx.settings?.facebookUrl} instagramUrl={ctx.settings?.instagramUrl} />
         {gaId && (
           <>

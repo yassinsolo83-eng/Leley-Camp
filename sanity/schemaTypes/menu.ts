@@ -8,7 +8,7 @@ const key = (s: string) => s.replace(/[^a-z0-9]/gi, "").toLowerCase();
 
 // First time the document is opened, the Studio pre-fills it with the current menu.
 // Press Publish once and the website starts reading the menu from here.
-const initialSections = MENU_GROUPS.map((g) => ({
+export const initialSections = MENU_GROUPS.map((g) => ({
   _type: "menuSection",
   _key: `sec${key(g.id)}`,
   title: { _type: "localeString", en: g.en, ar: g.ar },
@@ -37,12 +37,15 @@ export const menuItem = defineType({
       description: "Shown instead of the number, e.g. 75 – 150 or 100 / 170. Use it when the price is a range." }),
     defineField({ name: "note", title: "Small note under the name (optional)", type: "localeString",
       description: "Example: the juice flavours." }),
+    defineField({ name: "image", title: "Photo (optional)", type: "image", options: { hotspot: true },
+      description: "Shown next to the dish on the menu. Upload or replace it here any time." }),
     defineField({ name: "hidden", title: "Hide from the menu", type: "boolean", initialValue: false,
       description: "Turn on when it's finished today. Turn it off to bring it back." }),
   ],
   preview: {
-    select: { en: "name.en", ar: "name.ar", price: "price", priceText: "priceText", hidden: "hidden" },
-    prepare: ({ en, ar, price, priceText, hidden }) => ({
+    select: { en: "name.en", ar: "name.ar", price: "price", priceText: "priceText", hidden: "hidden", media: "image" },
+    prepare: ({ en, ar, price, priceText, hidden, media }) => ({
+      media,
       title: `${hidden ? "(hidden) " : ""}${en || ar || "New item"}`,
       subtitle: priceText || (price != null ? `${price} EGP` : "No price"),
     }),
@@ -98,6 +101,12 @@ export const menu = defineType({
     defineField({ name: "place", title: "Line under the title", type: "localeString", group: "page" }),
     defineField({ name: "hint", title: "Short instructions for guests", type: "localeText", group: "page" }),
     defineField({ name: "currency", title: "Currency label", type: "localeString", group: "page", description: "Shown next to the total. Example: EGP." }),
+    defineField({ name: "priceDigits", title: "Price numerals", type: "string", group: "page", initialValue: "latin",
+      options: { layout: "radio", list: [
+        { title: "English numerals (1, 2, 3)", value: "latin" },
+        { title: "Arabic numerals (١، ٢، ٣)", value: "arabic" },
+      ] },
+      description: "How prices and totals are written on the menu, in both languages." }),
     defineField({ name: "whatsappNumber", title: "WhatsApp number for menu requests (optional)", type: "string", group: "page",
       description: "Digits only with country code. Leave empty to use the number from Site settings.",
       validation: (r) => r.regex(/^\d{8,15}$/, { name: "digits" }).error("Digits only, with country code, no + or spaces.") }),

@@ -1,4 +1,5 @@
 import type { Locale, Localized, MenuDoc } from "./sanity/types";
+import { imageUrl } from "./sanity/image";
 
 export type MenuItem = {
   id: string;
@@ -209,6 +210,14 @@ export const MENU_TEXT = {
     outside: "Outside the camp",
     whereRequired: "Please choose where you are.",
     msgWhere: "Location",
+    gateTitle: "Before you order",
+    gateIntro: "Tell us who you are so we can bring your order to you.",
+    yourPhone: "Phone number",
+    phoneRequired: "Please enter a valid phone number.",
+    gateContinue: "See the menu",
+    msgPhone: "Phone",
+    orderingAs: "Ordering as",
+    changeDetails: "Change",
   },
   ar: {
     nav: "المنيو",
@@ -249,13 +258,22 @@ export const MENU_TEXT = {
     outside: "خارج الكامب",
     whereRequired: "من فضلك اختر مكانك.",
     msgWhere: "المكان",
+    gateTitle: "قبل ما تطلب",
+    gateIntro: "اكتب بياناتك علشان نوصّل لك طلبك.",
+    yourPhone: "رقم التليفون",
+    phoneRequired: "من فضلك اكتب رقم تليفون صحيح.",
+    gateContinue: "شاهد المنيو",
+    msgPhone: "التليفون",
+    orderingAs: "الطلب باسم",
+    changeDetails: "تغيير",
   },
 } satisfies Record<Locale, Record<string, unknown>>;
 
 export type MenuText = (typeof MENU_TEXT)["en"] | (typeof MENU_TEXT)["ar"];
 
 /** What the menu page and the board need, already in the page language. */
-export type MenuViewItem = { id: string; name: string; price: number | null; priceText?: string; note?: string };
+export type MenuViewItem = { id: string; name: string; price: number | null; priceText?: string; note?: string; imageUrl?: string };
+export type MenuDigits = "latin" | "arabic";
 export type MenuViewGroup = { id: string; title: string; kicker?: string; art?: MenuGroup["art"]; note?: string; items: MenuViewItem[] };
 
 const ART_KEYS = ["pizza", "plate", "glass", "moka", "cone", "fish"];
@@ -284,6 +302,7 @@ export function resolveMenu(doc: MenuDoc | null | undefined, lang: Locale) {
             price: typeof i.price === "number" ? i.price : null,
             priceText: i.priceText?.trim() || undefined,
             note: pick(i.note) || undefined,
+            imageUrl: imageUrl(i.image) || undefined,
           })),
       }))
     : MENU_GROUPS.map((g) => ({
@@ -309,5 +328,18 @@ export function resolveMenu(doc: MenuDoc | null | undefined, lang: Locale) {
     hint: pick(doc?.hint, t.hint),
     currency: pick(doc?.currency, t.currency),
     whatsappNumber: doc?.whatsappNumber?.trim() || "",
+    digits: (doc?.priceDigits === "arabic" ? "arabic" : "latin") as MenuDigits,
   };
+}
+
+const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+
+/** Prices and totals in English (1,250) or Arabic (١٬٢٥٠) numerals, as chosen in the Studio. */
+export function formatPrice(n: number, digits: MenuDigits) {
+  return digits === "arabic" ? n.toLocaleString("ar-EG") : n.toLocaleString("en-US");
+}
+
+/** Same choice for a price written as text, e.g. "75 – 150". */
+export function formatPriceText(text: string, digits: MenuDigits) {
+  return digits === "arabic" ? text.replace(/[0-9]/g, (d) => ARABIC_DIGITS[Number(d)]) : text;
 }

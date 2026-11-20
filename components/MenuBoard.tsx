@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatNumber, whatsappLink } from "@/lib/i18n";
-import { MENU_TEXT, type MenuViewGroup, type MenuViewItem } from "@/lib/menu";
+import { MENU_TEXT, formatPrice, formatPriceText, type MenuDigits, type MenuViewGroup, type MenuViewItem } from "@/lib/menu";
 import type { Locale } from "@/lib/sanity/types";
 import { CloseIcon, WhatsAppIcon } from "./icons";
 
@@ -18,17 +18,56 @@ const ART = {
 
 type Line = { item: MenuViewItem; qty: number };
 
-export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { lang: Locale; groups: MenuViewGroup[]; currency: string; whatsappNumber: string }) {
+const GUEST_KEY = "leley-menu-guest";
+
+export default function MenuBoard({ lang, groups, currency, whatsappNumber, digits }: { lang: Locale; groups: MenuViewGroup[]; currency: string; whatsappNumber: string; digits: MenuDigits }) {
   const t = { ...MENU_TEXT[lang], currency };
   const [cart, setCart] = useState<Record<string, number>>({});
   const [open, setOpen] = useState(false);
   const [notes, setNotes] = useState("");
   const [guestName, setGuestName] = useState("");
+  const [phone, setPhone] = useState("");
   const [cabin, setCabin] = useState("");
   const [where, setWhere] = useState<"" | "inside" | "outside">("");
   const [whereMissing, setWhereMissing] = useState(false);
   const [nameMissing, setNameMissing] = useState(false);
+  const [phoneMissing, setPhoneMissing] = useState(false);
+  // The guest's details are asked once, before the menu is shown, and kept for the visit.
+  const [gate, setGate] = useState(true);
   const nameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(GUEST_KEY) || "null");
+      if (saved?.name && saved?.phone && saved?.where) {
+        setGuestName(saved.name);
+        setPhone(saved.phone);
+        setWhere(saved.where);
+        setCabin(saved.cabin || "");
+        setGate(false);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (!gate) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [gate]);
+
+  const phoneOk = phone.replace(/\D/g, "").length >= 7;
+  const submitGate = () => {
+    setNameMissing(guestName.trim() === "");
+    setPhoneMissing(!phoneOk);
+    setWhereMissing(where === "");
+    if (guestName.trim() === "" || !phoneOk || where === "") return;
+    try {
+      sessionStorage.setItem(GUEST_KEY, JSON.stringify({ name: guestName.trim(), phone: phone.trim(), where, cabin: cabin.trim() }));
+    } catch {}
+    setGate(false);
+  };
   const [active, setActive] = useState(groups[0]?.id ?? "");
   const chipsRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -57,7 +96,7 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
       return copy;
     });
 
-  const priceLabel = (i: MenuViewItem) => (i.priceText ? i.priceText : i.price !== null ? formatNumber(i.price) : "");
+  const priceLabel = (i: MenuViewItem) => (i.priceText ? formatPriceText(i.priceText, digits) : i.price !== null ? formatPrice(i.price, digits) : "");
 
   // WhatsApp message in the page language, listing every item with quantity and price.
   const message = (() => {
@@ -68,12 +107,11 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
     const totalLine = `${t.msgTotal}: ${formatNumber(total)} ${t.currency}${hasUnpriced ? ` (${t.msgPlus})` : ""}`;
     const noteLine = notes.trim() ? `\n${t.msgNotes}: ${notes.trim()}` : "";
     const place = where ? `${t.msgWhere}: ${where === "inside" ? t.inside : t.outside}\n` : "";
-    const who = `${place}${t.msgName}: ${guestName.trim()}${where === "inside" && cabin.trim() ? `\n${t.msgCabin}: ${cabin.trim()}` : ""}`;
+    const who = `${place}${t.msgName}: ${guestName.trim()}\n${t.msgPhone}: ${phone.trim()}${where === "inside" && cabin.trim() ? `\n${t.msgCabin}: ${cabin.trim()}` : ""}`;
     return `${t.greeting}\n\n${rows.join("\n")}\n\n${totalLine}${noteLine}\n\n${who}`;
   })();
   const waHref = whatsappLink(whatsappNumber, message);
-  const nameOk = guestName.trim().length > 0;
-  const canSend = nameOk && where !== "";
+  const canSend = !gate;
 
   // The chip bar sticks right under the site header (its height changes with the offer ticker).
   useEffect(() => {
@@ -158,7 +196,8 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
                       const qty = cart[item.id] ?? 0;
                       const itemNote = item.note;
                       return (
-                        <li key={item.id} className="menu-item">
+                        <li key={item.id} className={`menu-item${item.imageUrl ? " has-img" : ""}`}>
+                          {item.imageUrl && <Image className="menu-item-img" src={item.imageUrl} alt={name(item)} width={56} height={56} />}
                           <div className="menu-item-text">
                             <span className="menu-item-name">{name(item)}</span>
                             {itemNote && <span className="menu-item-note">{itemNote}</span>}
@@ -190,7 +229,7 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
         <div className="menu-cartbar" role="region" aria-label={t.yourRequest}>
           <div className="menu-cartbar-info">
             <strong>{t.items(count)}</strong>
-            <span>{formatNumber(total)} {t.currency}{hasUnpriced ? " +" : ""}</span>
+            <span>{formatPrice(total, digits)} {t.currency}{hasUnpriced ? " +" : ""}</span>
           </div>
           <button type="button" className="menu-cartbar-btn" onClick={() => setOpen(true)}>{t.review}</button>
         </div>
@@ -208,7 +247,7 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
                 <li key={item.id}>
                   <span className="menu-sheet-name">{name(item)}</span>
                   <span className="menu-sheet-price" dir="ltr">
-                    {item.price !== null ? formatNumber(item.price * qty) : item.priceText ?? "—"}
+                    {item.price !== null ? formatPrice(item.price * qty, digits) : item.priceText ? formatPriceText(item.priceText, digits) : "—"}
                   </span>
                   <div className="menu-qty" role="group" aria-label={name(item)}>
                     <button type="button" onClick={() => change(item.id, -1)} aria-label={`${t.decrease}: ${name(item)}`}>−</button>
@@ -218,6 +257,33 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
                 </li>
               ))}
             </ul>
+            <div className="menu-who">
+              <span>{t.orderingAs}: <strong>{guestName}</strong>{where === "inside" && cabin ? ` · ${t.msgCabin} ${cabin}` : ""}</span>
+              <button type="button" onClick={() => { setOpen(false); setGate(true); }}>{t.changeDetails}</button>
+            </div>
+            <label className="menu-notes">
+              <span>{t.notes}</span>
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={300} placeholder={t.notesHint} />
+            </label>
+            <div className="menu-total">
+              <span>{t.total}</span>
+              <strong>{formatPrice(total, digits)} {t.currency}{hasUnpriced ? " +" : ""}</strong>
+            </div>
+            {hasUnpriced && <p className="menu-total-note">{t.totalNote}</p>}
+            {waHref && (
+              <a className="menu-send" href={waHref} target="_blank" rel="noopener noreferrer">
+                <WhatsAppIcon size={18} color="#fff" /> {t.send}
+              </a>
+            )}
+            <button type="button" className="menu-clear" onClick={() => { setCart({}); setNotes(""); setOpen(false); }}>{t.clear}</button>
+          </div>
+        </div>
+      )}
+      {gate && (
+        <div className="menu-gate-wrap">
+          <div className="menu-gate" role="dialog" aria-modal="true" aria-label={t.gateTitle}>
+            <h2 className="display">{t.gateTitle}</h2>
+            <p>{t.gateIntro}</p>
             <fieldset className="menu-where">
               <legend>{t.where}</legend>
               <div className="menu-where-opts">
@@ -231,31 +297,18 @@ export default function MenuBoard({ lang, groups, currency, whatsappNumber }: { 
               <input ref={nameRef} type="text" value={guestName} onChange={(e) => { setGuestName(e.target.value); setNameMissing(false); }} maxLength={60} autoComplete="name" aria-invalid={nameMissing} />
               {nameMissing && <span className="menu-error" role="alert">{t.nameRequired}</span>}
             </label>
+            <label className="menu-notes">
+              <span>{t.yourPhone}</span>
+              <input type="tel" inputMode="tel" dir="ltr" value={phone} onChange={(e) => { setPhone(e.target.value); setPhoneMissing(false); }} maxLength={20} autoComplete="tel" aria-invalid={phoneMissing} />
+              {phoneMissing && <span className="menu-error" role="alert">{t.phoneRequired}</span>}
+            </label>
             {where === "inside" && (
               <label className="menu-notes">
                 <span>{t.cabinNumber}</span>
                 <input type="text" inputMode="numeric" value={cabin} onChange={(e) => setCabin(e.target.value)} maxLength={20} placeholder={t.cabinHint} />
               </label>
             )}
-            <label className="menu-notes">
-              <span>{t.notes}</span>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={300} placeholder={t.notesHint} />
-            </label>
-            <div className="menu-total">
-              <span>{t.total}</span>
-              <strong>{formatNumber(total)} {t.currency}{hasUnpriced ? " +" : ""}</strong>
-            </div>
-            {hasUnpriced && <p className="menu-total-note">{t.totalNote}</p>}
-            {waHref && (canSend ? (
-              <a className="menu-send" href={waHref} target="_blank" rel="noopener noreferrer">
-                <WhatsAppIcon size={18} color="#fff" /> {t.send}
-              </a>
-            ) : (
-              <button type="button" className="menu-send" onClick={() => { setWhereMissing(where === ""); setNameMissing(!nameOk); if (!nameOk) nameRef.current?.focus(); }}>
-                <WhatsAppIcon size={18} color="#fff" /> {t.send}
-              </button>
-            ))}
-            <button type="button" className="menu-clear" onClick={() => { setCart({}); setNotes(""); setOpen(false); }}>{t.clear}</button>
+            <button type="button" className="menu-gate-btn" onClick={submitGate}>{t.gateContinue}</button>
           </div>
         </div>
       )}

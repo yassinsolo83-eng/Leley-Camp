@@ -6,6 +6,7 @@ import { visionTool } from "@sanity/vision";
 import { apiVersion, dataset, projectId } from "./lib/sanity/env";
 import { schemaTypes, SINGLETONS } from "./sanity/schemaTypes";
 import { structure } from "./sanity/structure";
+import { loadMenuAction } from "./sanity/components/loadMenuAction";
 
 export default defineConfig({
   name: "leley-camp",
@@ -23,7 +24,7 @@ export default defineConfig({
     // Singletons can only be published or reverted, never duplicated or deleted.
     actions: (actions, { schemaType }) =>
       SINGLETONS.includes(schemaType)
-        ? actions.filter(({ action }) => action && ["publish", "discardChanges", "restore"].includes(action))
+        ? [...(schemaType === "menu" ? [loadMenuAction] : []), ...actions.filter(({ action }) => action && ["publish", "discardChanges", "restore"].includes(action))]
         : actions,
   },
 });

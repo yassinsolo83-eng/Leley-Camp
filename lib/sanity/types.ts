@@ -147,13 +147,14 @@ export type MenuDoc = {
   hint?: Localized;
   currency?: Localized;
   whatsappNumber?: string;
+  priceDigits?: "latin" | "arabic";
   sections?: {
     _key: string;
     title?: Localized;
     kicker?: Localized;
     art?: string;
     note?: Localized;
-    items?: { _key: string; name?: Localized; price?: number | null; priceText?: string; note?: Localized; hidden?: boolean }[];
+    items?: { _key: string; name?: Localized; price?: number | null; priceText?: string; note?: Localized; image?: SanityImage; hidden?: boolean }[];
   }[];
 };
 
